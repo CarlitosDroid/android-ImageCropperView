@@ -10,19 +10,22 @@ import android.view.Menu
 import android.view.MenuItem
 
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.content_main.*
 
 class MainActivity : AppCompatActivity() {
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        fab.setOnClickListener { _ ->
+        fabCamera.setOnClickListener { _ ->
             val intent = Intent(Intent.ACTION_PICK)
             intent.data = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
             startActivityForResult(intent, REQUEST_TO_MEDIA)
         }
+
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -46,11 +49,9 @@ class MainActivity : AppCompatActivity() {
         when(requestCode){
             REQUEST_TO_MEDIA -> if(resultCode == Activity.RESULT_OK){
 
-
-
                 Log.e("DATA", ""+data?.data)
 
-
+                //mInstaCropper.setIm(data?.data)
 
             } else if(resultCode == Activity.RESULT_CANCELED){
 

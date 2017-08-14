@@ -22,8 +22,19 @@
 
     <include layout="@layout/content_main" />
 
+
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
+        android:id="@+id/fabCamera"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_margin="@dimen/fab_margin"
+        app:backgroundTint="@color/md_teal_500"
+        app:srcCompat="@drawable/ic_camera_alt_white_36dp" />
+
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabGallery"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
