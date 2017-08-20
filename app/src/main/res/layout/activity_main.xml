@@ -22,16 +22,14 @@
 
     <include layout="@layout/content_main" />
 
-
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fabCamera"
+        android:id="@+id/fabCameraSavePublicImage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
+        android:layout_gravity="bottom"
         android:layout_margin="@dimen/fab_margin"
-        app:backgroundTint="@color/md_teal_500"
-        app:srcCompat="@drawable/ic_camera_alt_white_36dp" />
-
+        app:backgroundTint="@color/md_blue_500"
+        app:srcCompat="@drawable/ic_camera_white_36dp" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fabGallery"
@@ -39,6 +37,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
-        app:srcCompat="@android:drawable/ic_dialog_email" />
+        app:srcCompat="@drawable/ic_collections_white_36dp" />
 
 </android.support.design.widget.CoordinatorLayout>
