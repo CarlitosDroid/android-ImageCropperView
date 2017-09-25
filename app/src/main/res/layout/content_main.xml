@@ -10,8 +10,8 @@
 
     <com.spidev.materialimagecropper.MaterialImageCropper
         android:id="@+id/mInstaCropper"
-        android:layout_width="254dp"
-        android:layout_height="200dp"
+        android:layout_width="203dp"
+        android:layout_height="110dp"
         android:layout_marginTop="8dp"
         android:visibility="invisible"
         app:layout_constraintEnd_toEndOf="parent"
@@ -21,8 +21,8 @@
 
     <ImageView
         android:id="@+id/imgPicture"
-        android:layout_width="198dp"
-        android:layout_height="153dp"
+        android:layout_width="343dp"
+        android:layout_height="331dp"
         android:layout_marginBottom="168dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

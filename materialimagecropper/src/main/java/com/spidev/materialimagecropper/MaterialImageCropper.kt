@@ -1,9 +1,12 @@
 package com.spidev.materialimagecropper
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.support.v4.content.ContextCompat
 import android.util.AttributeSet
 import android.util.Log
 import android.view.GestureDetector
@@ -60,7 +63,7 @@ class MaterialImageCropper : View {
     }
 
 
-    fun setImageUri(uri: Uri){
+    fun setImageUri(uri: Uri) {
 
 
     }
@@ -71,7 +74,7 @@ class MaterialImageCropper : View {
      */
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
-        Log.e("x-onLayout","onLayout")
+        Log.e("x-onLayout", "onLayout")
     }
 
     /**
@@ -80,13 +83,12 @@ class MaterialImageCropper : View {
      */
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-        Log.e("x-onDraw","onDraw")
+        Log.e("x-onDraw", "onDraw")
 
     }
 
 
-
-    fun startMakingSuitableDrawable(){
+    fun startMakingSuitableDrawable() {
 
     }
 

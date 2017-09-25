@@ -1,28 +1,31 @@
 package com.spidev.mandarinfish
 
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
-import android.graphics.Bitmap
+import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
-import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
-import android.os.PersistableBundle
 import android.provider.MediaStore
-import android.support.v4.content.FileProvider
+import android.support.v4.app.ActivityCompat
+import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import java.io.File
-import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 
+const val REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE: Int = 1
+
 class MainActivity : AppCompatActivity() {
+
 
     var mCurrentPhotoPath: String = ""
 
@@ -32,10 +35,14 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         fabCameraSavePublicImage.setOnClickListener { _ ->
+
+            getRequestPermission()
+
+/*
             val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
             //Ensure that there's a camera activity to handle the intent
             if (takePictureIntent.resolveActivity(packageManager) != null) {
-                //Create the FIle where the photo should go
+                //Create the File where the photo should go
                 var photoFile: File? = null
                 try {
                     photoFile = createPublicImageFile()
@@ -58,7 +65,7 @@ class MainActivity : AppCompatActivity() {
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
                     startActivityForResult(takePictureIntent, REQUEST_TO_CAMERA_GET_FULL_SIZE_IMAGE)
                 }
-            }
+            }*/
         }
 
         fabGallery.setOnClickListener { _ ->
@@ -98,7 +105,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             REQUEST_TO_CAMERA_GET_FULL_SIZE_IMAGE -> if (resultCode == Activity.RESULT_OK) {
-                setPic();
+                setPic()
                 //mInstaCropper.setIm(data?.data)
 
             } else if (resultCode == Activity.RESULT_CANCELED) {
@@ -120,12 +127,12 @@ class MainActivity : AppCompatActivity() {
         //Using the Picture public directory, accessible by all apps
         val storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
         Log.e("X-PUBLICSTORAGEDIR", "X-PUBLICSTORAGEDIR " + storageDir)
-        val image = File.createTempFile(imageFileName, ".jpg", storageDir)
+        val imageFile = File.createTempFile(imageFileName, ".jpg", storageDir)
 
         //Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoPath = image.absolutePath
+        mCurrentPhotoPath = imageFile.absolutePath
 
-        return image
+        return imageFile
     }
 
     fun createPrivateImageFile(): File {
@@ -167,5 +174,38 @@ class MainActivity : AppCompatActivity() {
         val bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions)
 
         imgPicture.setImageBitmap(bitmap)
+    }
+
+    fun getRequestPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+
+                Toast.makeText(this, "MOSTRAR MODAL", Toast.LENGTH_SHORT)
+
+            } else {
+                val permissionArrayString = arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+
+                ActivityCompat.requestPermissions(this,
+                        permissionArrayString,
+                        REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE)
+            }
+        } else {
+            Log.e("ASDFASDF", "ASDFASDF")
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        when (requestCode) {
+            REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE -> if (grantResults.isNotEmpty() && grantResults[0]
+                    == PackageManager.PERMISSION_GRANTED) {
+
+            } else {
+
+            }
+        }
     }
 }
