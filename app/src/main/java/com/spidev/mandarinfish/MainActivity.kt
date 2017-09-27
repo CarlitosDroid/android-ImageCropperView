@@ -1,25 +1,29 @@
 package com.spidev.mandarinfish
 
+
+import kotlinx.android.synthetic.main.activity_main2.*
+import java.io.File
+
+import android.content.Intent
+import android.os.Bundle
+import android.provider.MediaStore
+import android.support.v7.app.AppCompatActivity
+
+
 import android.Manifest
 import android.app.Activity
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
-import android.os.Bundle
 import android.os.Environment
-import android.provider.MediaStore
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
-import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import com.spidev.mandarinfish.fragments.CameraDialogFragment
+import kotlinx.android.synthetic.main.content_main2.*
 
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.content_main.*
-import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -34,15 +38,15 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_main2)
         setSupportActionBar(toolbar)
 
         fabCameraSavePublicImage.setOnClickListener { _ ->
 
             getRequestPermission()
 
-/*
-            val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+
+            /*val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
             //Ensure that there's a camera activity to handle the intent
             if (takePictureIntent.resolveActivity(packageManager) != null) {
                 //Create the File where the photo should go
@@ -155,8 +159,8 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
 
     fun setPic() {
         //Get the dimensions of the View
-        val targetW: Int = imgPicture.width
-        val targetH: Int = imgPicture.height
+        val targetW: Int = imgPhoto.width
+        val targetH: Int = imgPhoto.height
 
         //Get the dimensions of the bitmap
         val bmOptions = BitmapFactory.Options()
@@ -176,22 +180,25 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
         Log.e("X-mCurrentPhotoPath", "" + mCurrentPhotoPath)
         val bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions)
 
-        imgPicture.setImageBitmap(bitmap)
+        imgPhoto.setImageBitmap(bitmap)
     }
 
     fun getRequestPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
 
+            Log.e("PERMISSION GRANTED", "PERMISSION GRANTED")
+
+            // Should we show an explanation?
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-
-                Toast.makeText(this, "MOSTRAR MODAL", Toast.LENGTH_SHORT)
-
                 val fragmentManager = this.supportFragmentManager
                 val cameraDialogFragment = CameraDialogFragment.newInstance("MOSTRAR MODAL")
                 cameraDialogFragment.show(fragmentManager, "layout_camera_layout")
-
             } else {
+
+                Log.e("NO EXPLANATION NEED", "PERMISSION NOT GRANTED")
+
+                // No explanation needed, we can request the permission.
                 val permissionArrayString = arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
                 ActivityCompat.requestPermissions(this,
@@ -199,7 +206,7 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
                         REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE)
             }
         } else {
-            Log.e("ASDFASDF", "ASDFASDF")
+            Log.e("PERMISSION NOT GRANTED", "PERMISSION NOT GRANTED")
         }
     }
 
