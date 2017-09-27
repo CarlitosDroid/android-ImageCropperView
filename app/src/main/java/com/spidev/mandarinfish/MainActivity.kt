@@ -1,7 +1,7 @@
 package com.spidev.mandarinfish
 
 
-import kotlinx.android.synthetic.main.activity_main2.*
+import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 
 import android.content.Intent
@@ -22,7 +22,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import com.spidev.mandarinfish.fragments.CameraDialogFragment
-import kotlinx.android.synthetic.main.content_main2.*
+import kotlinx.android.synthetic.main.content_main.*
 
 import java.text.SimpleDateFormat
 import java.util.*
@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main2)
+        setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
         fabCameraSavePublicImage.setOnClickListener { _ ->
