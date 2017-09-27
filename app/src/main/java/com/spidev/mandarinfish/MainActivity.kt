@@ -1,7 +1,7 @@
 package com.spidev.mandarinfish
 
 
-import kotlinx.android.synthetic.main.activity_main2.*
+import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 
 import android.content.Intent
@@ -20,28 +20,30 @@ import android.os.Environment
 import android.os.ParcelFileDescriptor
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
-import android.support.v4.content.FileProvider
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
-import kotlinx.android.synthetic.main.content_main2.*
+
+import com.spidev.mandarinfish.fragments.CameraDialogFragment
+import kotlinx.android.synthetic.main.content_main.*
 import java.io.FileDescriptor
 
-import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 
 const val REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE: Int = 1
 
-
-class Main2Activity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationaleListener {
+    override fun onAccept() {
+        Toast.makeText(this, "HOLA", Toast.LENGTH_SHORT).show()
+    }
 
     var mCurrentPhotoPath: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main2)
+        setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
         fabCameraSavePublicImage.setOnClickListener { _ ->
@@ -197,8 +199,9 @@ class Main2Activity : AppCompatActivity() {
 
             // Should we show an explanation?
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-
-                Log.e("MODAL", "MODAL")
+                val fragmentManager = this.supportFragmentManager
+                val cameraDialogFragment = CameraDialogFragment.newInstance("MOSTRAR MODAL")
+                cameraDialogFragment.show(fragmentManager, "layout_camera_layout")
             } else {
 
                 Log.e("NO EXPLANATION NEED", "PERMISSION NOT GRANTED")
@@ -228,6 +231,7 @@ class Main2Activity : AppCompatActivity() {
         }
     }
 
+
     fun getBitmapFromUri(uri:Uri): Bitmap? {
         var  bitmap: Bitmap?=null
         try {
@@ -245,7 +249,6 @@ class Main2Activity : AppCompatActivity() {
     fun saveImageFile(bitmap: Bitmap,name:String){
 
     }
-
 
 
 }
