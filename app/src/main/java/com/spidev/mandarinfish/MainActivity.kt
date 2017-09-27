@@ -32,6 +32,12 @@ const val REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE: Int = 1
 class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationaleListener {
     override fun onAccept() {
         Toast.makeText(this, "HOLA", Toast.LENGTH_SHORT).show()
+
+        val permissionArrayString = arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+
+        ActivityCompat.requestPermissions(this,
+                permissionArrayString,
+                REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE)
     }
 
     var mCurrentPhotoPath: String = ""
@@ -187,16 +193,15 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
 
-            Log.e("PERMISSION GRANTED", "PERMISSION GRANTED")
-
             // Should we show an explanation?
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                Log.e("PERMISSION RATIONALE", "PERMISSION RATIONALE")
                 val fragmentManager = this.supportFragmentManager
                 val cameraDialogFragment = CameraDialogFragment.newInstance("MOSTRAR MODAL")
                 cameraDialogFragment.show(fragmentManager, "layout_camera_layout")
             } else {
 
-                Log.e("NO EXPLANATION NEED", "PERMISSION NOT GRANTED")
+                Log.e("NO EXPLANATION NEED", "NO EXPLANATION NEED")
 
                 // No explanation needed, we can request the permission.
                 val permissionArrayString = arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -216,9 +221,9 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
         when (requestCode) {
             REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE -> if (grantResults.isNotEmpty() && grantResults[0]
                     == PackageManager.PERMISSION_GRANTED) {
-
+                Log.e("RESULT PERMISSION", "PERMISSION GRANTED")
             } else {
-
+                Log.e("RESULT NOT PERMISSION", "NOT PERMISSION GRANTED")
             }
         }
     }

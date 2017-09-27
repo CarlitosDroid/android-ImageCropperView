@@ -36,7 +36,7 @@ class CameraDialogFragment : DialogFragment() {
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         btnAccept.setOnClickListener{ _ ->
-
+            dialog.dismiss()
             onCameraRationaleListener?.onAccept()
         }
 
