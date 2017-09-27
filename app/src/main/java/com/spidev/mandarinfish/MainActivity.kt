@@ -15,6 +15,7 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import com.spidev.mandarinfish.fragments.CameraDialogFragment
 
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
@@ -24,8 +25,10 @@ import java.util.*
 
 const val REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE: Int = 1
 
-class MainActivity : AppCompatActivity() {
-
+class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationaleListener {
+    override fun onAccept() {
+        Toast.makeText(this, "HOLA", Toast.LENGTH_SHORT).show()
+    }
 
     var mCurrentPhotoPath: String = ""
 
@@ -183,6 +186,10 @@ class MainActivity : AppCompatActivity() {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
 
                 Toast.makeText(this, "MOSTRAR MODAL", Toast.LENGTH_SHORT)
+
+                val fragmentManager = this.supportFragmentManager
+                val cameraDialogFragment = CameraDialogFragment.newInstance("MOSTRAR MODAL")
+                cameraDialogFragment.show(fragmentManager, "layout_camera_layout")
 
             } else {
                 val permissionArrayString = arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
