@@ -13,8 +13,11 @@ import android.support.v7.app.AppCompatActivity
 import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Environment
+import android.os.ParcelFileDescriptor
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.FileProvider
@@ -23,6 +26,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import kotlinx.android.synthetic.main.content_main2.*
+import java.io.FileDescriptor
 
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -101,7 +105,10 @@ class Main2Activity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
             REQUEST_TO_MEDIA -> if (resultCode == Activity.RESULT_OK) {
-
+             val uri:Uri= data!!.data
+             val bitmap:Bitmap?=getBitmapFromUri(uri)
+//                imgPhoto.setImageBitmap(bitmap)
+                imgPhoto.setImageURI(uri)
                 Log.e("DATA-MEDIA", "" + data?.data)
 
                 //mInstaCropper.setIm(data?.data)
@@ -220,6 +227,25 @@ class Main2Activity : AppCompatActivity() {
             }
         }
     }
+
+    fun getBitmapFromUri(uri:Uri): Bitmap? {
+        var  bitmap: Bitmap?=null
+        try {
+            val parcelFileDescriptor :ParcelFileDescriptor=contentResolver.openFileDescriptor(uri,"r")
+            val FileDescriptor :FileDescriptor=parcelFileDescriptor.fileDescriptor
+            bitmap= BitmapFactory.decodeFileDescriptor(FileDescriptor)
+            parcelFileDescriptor.close()
+
+        }catch (e:Exception){
+            Log.e("e",e.toString())
+        }
+        return bitmap
+    }
+
+    fun saveImageFile(bitmap: Bitmap,name:String){
+
+    }
+
 
 
 }
