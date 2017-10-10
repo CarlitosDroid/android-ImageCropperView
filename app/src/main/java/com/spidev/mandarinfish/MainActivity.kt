@@ -159,16 +159,20 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
         Log.e("z-getRequestPermis***", "z-getRequestPermis***")
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
+
             Log.e("z-notPermissionWES", "z-notPermissionWES")
 
             // Should we show an explanation?
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
                 Log.e("z-showDialogRationale", "z-showDialogRationale")
+
                 val fragmentManager = this.supportFragmentManager
                 cameraDialogFragment = CameraDialogFragment.newInstance("MOSTRAR MODAL")
                 cameraDialogFragment?.show(fragmentManager, "layout_camera_layout")
             } else {
+
                 Log.e("z-notNeedShowDialogRat", "z-notNeedShowDialogRat")
+
                 // No explanation needed, we can request the permission.
                 requestThePermissions()
             }
@@ -185,7 +189,6 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
         when (requestCode) {
             REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE -> if (grantResults.isNotEmpty() && grantResults[0]
                     == PackageManager.PERMISSION_GRANTED) {
-
 
                 Log.e("z-permissionGranted", "z-permissionGranted")
 
