@@ -20,7 +20,7 @@ class MaterialImageCropper : View {
 
     var gestureDetector: GestureDetector? = null
     var drawable: Drawable? = null
-
+    var makeDrawableAsyncTask : MakeDrawableAsyncTask? = null
 
     constructor(context: Context) : super(context)
 
@@ -89,7 +89,7 @@ class MaterialImageCropper : View {
 
 
     fun startMakingSuitableDrawable() {
-
+       // makeDrawableAsyncTask = MakeDrawableAsyncTask(this, uri, width, width)
     }
 
 

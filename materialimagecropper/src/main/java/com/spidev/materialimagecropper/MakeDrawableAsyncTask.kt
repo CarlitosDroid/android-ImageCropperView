@@ -1,6 +1,9 @@
 package com.spidev.materialimagecropper
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.AsyncTask
@@ -8,8 +11,68 @@ import android.os.AsyncTask
 /**
  * Created by Carlos Leonardo Camilo Vargas Huamán on 8/14/17.
  */
-class MakeDrawableAsyncTask constructor(context: Context, uri: Uri, targetWidth: Int, targetHeight: Int) : AsyncTask<Void, Void, Drawable>() {
+class MakeDrawableAsyncTask
+(context: Context, uri: Uri, targetWidth: Int, targetHeight: Int)
+    : AsyncTask<Void, Void, Drawable>() {
+    //private var mContext: Context? = null
+
+//
+//    val mUri = uri
+//
+//
+//    var rawWidth: Int = 0
+//    var rawHeight: Int = 0
+//
+//
+
+    private var mUri: Uri? = null
+    private var mTargetWidth: Int = 0
+    private var mTargetHeight: Int = 0
+
+    private val rawWidth: Int = 0
+    private val rawHeight: Int = 0
+
+    private var mContext: Context? = null
+
+    init {
+        mContext = context
+        mUri = uri
+
+        mTargetWidth = targetWidth
+        mTargetHeight = targetHeight
+
+    }
+
+
     override fun doInBackground(vararg p0: Void?): Drawable {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+
+        var options: BitmapFactory.Options
+        options.inSampleSize = 1
+        options.inJustDecodeBounds = true
+
+
+        BitmapFactory.decodeStream(mContext!!.contentResolver!!.openInputStream(mUri),
+                null, options)
+
+//        var bitmap: Bitmap = bitmap
+//
+//        bitmap = bitm
+//
+//
+//        var drawable: Drawable
+//        drawable = BitmapDrawable.
+
+
     }
+
+
+    fun getBitmap(context: Context, uri: Uri, options: BitmapFactory.Options) {
+
+
+
+
+    }
+
+
 }
