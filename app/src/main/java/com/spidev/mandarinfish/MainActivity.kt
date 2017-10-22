@@ -24,6 +24,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import com.spidev.mandarinfish.activities.MaterialImageCropperActivity
 import com.spidev.mandarinfish.commons.Constants
 import com.spidev.mandarinfish.fragments.CameraDialogFragment
 import kotlinx.android.synthetic.main.content_main.*
@@ -69,10 +70,10 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
         }
     }
 
-    fun startMaterialImageCropperActivity(source: Uri, destination: Uri) {
-        val intent = Intent(this, FilterActivity::class.java)
-        intent.data = source
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, destination)
+    private fun startMaterialImageCropperActivity(sourceUri: Uri, destinationUri: Uri) {
+        val intent = Intent(this, MaterialImageCropperActivity::class.java)
+        intent.data = sourceUri
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, destinationUri)
         intent.putExtra(Constants.EXTRA_PREFERRED_RATIO, Constants.DEFAULT_RATIO)
         intent.putExtra(Constants.EXTRA_MINIMUN_RATIO, Constants.DEFAULT_MINIMUN_RATIO)
         intent.putExtra(Constants.EXTRA_MAXIMUN_RATIO, Constants.DEFAULT_MAXIMUN_RATIO)
