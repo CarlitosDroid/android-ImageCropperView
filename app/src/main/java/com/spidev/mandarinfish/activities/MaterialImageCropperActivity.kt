@@ -1,11 +1,11 @@
 package com.spidev.mandarinfish.activities
 
-import android.content.Intent
 import android.os.Bundle
 import android.provider.MediaStore
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import android.view.View
 import com.spidev.mandarinfish.R
 import com.spidev.mandarinfish.commons.Constants
 
@@ -30,8 +30,10 @@ class MaterialImageCropperActivity : AppCompatActivity() {
         val preferredRatio = intent.extras[Constants.EXTRA_PREFERRED_RATIO]
         val minimunRatio = intent.extras[Constants.EXTRA_MINIMUN_RATIO]
         val maximunRatio = intent.extras[Constants.EXTRA_MAXIMUN_RATIO]
-        val widthSpecification = intent.extras[Constants.EXTRA_WIDTH_SPECIFICATION]
-        val heightSpecification = intent.extras[Constants.EXTRA_HEIGHT_SPECIFICATION]
+        val widthSpecification = intent.getIntExtra(Constants.EXTRA_WIDTH_SPECIFICATION,
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+        val heightSpecification = intent.getIntExtra(Constants.EXTRA_HEIGHT_SPECIFICATION,
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
         val quality = intent.extras[Constants.EXTRA_OUTPUT_QUALITY]
 
         Log.e("x-sourceUri ", "$sourceUri")
@@ -43,7 +45,8 @@ class MaterialImageCropperActivity : AppCompatActivity() {
         Log.e("x-heightSpecification ", "$heightSpecification")
         Log.e("x-quality ", "$quality")
 
-
+        micPicture.setImageUri(sourceUri)
+        micPicture.crop(widthSpecification, heightSpecification)
         //micPicture.setImageUri()
     }
 
