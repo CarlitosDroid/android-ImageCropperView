@@ -40,7 +40,10 @@
             android:name=".FilterActivity"
             android:label="@string/title_activity_filter"
             android:theme="@style/AppTheme.NoActionBar" />
-
+        <activity
+            android:name=".activities.MaterialImageCropperActivity"
+            android:label="@string/title_activity_material_image_cropper"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

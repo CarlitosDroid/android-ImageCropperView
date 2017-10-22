@@ -14,6 +14,7 @@ import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Environment
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
@@ -21,7 +22,9 @@ import android.support.v4.content.FileProvider
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
+import com.spidev.mandarinfish.commons.Constants
 import com.spidev.mandarinfish.fragments.CameraDialogFragment
 import kotlinx.android.synthetic.main.content_main.*
 import java.io.IOException
@@ -39,6 +42,8 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
     var mCurrentPhotoPath: String = ""
     var cameraDialogFragment: CameraDialogFragment? = null
 
+    private var galleryImageUri: Uri? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -53,6 +58,28 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
             intent.data = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
             startActivityForResult(intent, REQUEST_TO_MEDIA)
         }
+
+        fabNextActivity.setOnClickListener { _ ->
+            if (galleryImageUri != null) {
+                val destinationUri = Uri.fromFile(File(externalCacheDir, "test.jpg"))
+                startMaterialImageCropperActivity(galleryImageUri!!, destinationUri)
+            } else {
+                Toast.makeText(this, "Select a Picture from Gallery", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    fun startMaterialImageCropperActivity(source: Uri, destination: Uri) {
+        val intent = Intent(this, FilterActivity::class.java)
+        intent.data = source
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, destination)
+        intent.putExtra(Constants.EXTRA_PREFERRED_RATIO, Constants.DEFAULT_RATIO)
+        intent.putExtra(Constants.EXTRA_MINIMUN_RATIO, Constants.DEFAULT_MINIMUN_RATIO)
+        intent.putExtra(Constants.EXTRA_MAXIMUN_RATIO, Constants.DEFAULT_MAXIMUN_RATIO)
+        intent.putExtra(Constants.EXTRA_WIDTH_SPECIFICATION, View.MeasureSpec.makeMeasureSpec(720, View.MeasureSpec.AT_MOST))
+        intent.putExtra(Constants.EXTRA_HEIGHT_SPECIFICATION, View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+        intent.putExtra(Constants.EXTRA_OUTPUT_QUALITY, 50)
+        startActivity(intent)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -77,7 +104,9 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
             REQUEST_TO_MEDIA -> if (resultCode == Activity.RESULT_OK) {
                 //data?.data is not null when selecting any file from gallery
                 //mInstaCropper.setImageUri(data?.data!!)
-
+                Log.e("Gallery Image Uri", "data ${data?.data}")
+                galleryImageUri = data?.data
+                imgPhoto.setImageURI(data?.data)
             } else if (resultCode == Activity.RESULT_CANCELED) {
 
             }
