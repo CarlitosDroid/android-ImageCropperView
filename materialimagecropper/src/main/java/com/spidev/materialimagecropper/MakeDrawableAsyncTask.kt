@@ -17,8 +17,8 @@ import android.widget.Toast
 /**
  * Created by Carlos Leonardo Camilo Vargas Huamán on 8/14/17.
  */
-class MakeDrawableAsyncTask
-(context: Context, drawable: Drawable?, uri: Uri, targetWidth: Int, targetHeight: Int)
+open class MakeDrawableAsyncTask
+(context: Context, uri: Uri, targetWidth: Int, targetHeight: Int)
     : AsyncTask<Void, Void, Drawable>() {
     //private var mContext: Context? = null
 
@@ -42,12 +42,13 @@ class MakeDrawableAsyncTask
     private var mContext: Context? = null
 
     init {
-        mDrawable = drawable
         mContext = context
         mUri = uri
 
         mTargetWidth = targetWidth
         mTargetHeight = targetHeight
+
+        Log.e("INIT","INIT")
 
     }
 
@@ -63,6 +64,7 @@ class MakeDrawableAsyncTask
         val bitmapp = MediaStore.Images.Media.getBitmap(mContext?.contentResolver,
                 mUri)
 
+        Log.e("IN BACKGROUND","IN BACKGROIUND  $bitmapp")
         return BitmapDrawable(mContext?.resources, bitmapp)
     }
 
@@ -79,6 +81,36 @@ class MakeDrawableAsyncTask
 
 
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 }
