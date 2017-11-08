@@ -20,6 +20,11 @@ import android.widget.Toast
 /**
  * Created by Carlos Leonardo Camilo Vargas Huamán on 8/13/17.
  */
+
+const val DEFAULT_MINIMUM_RATIO = 4f / 5f
+const val DEFAULT_MAXIMUM_RATIO = 1.91f
+const val DEFAULT_RATIO = 1f
+
 class ImageCropperView : View {
 
     var gestureDetector: GestureDetector? = null
@@ -29,6 +34,25 @@ class ImageCropperView : View {
     private lateinit var mImageUri: Uri
     private var gridDrawable = GriddDrawable()
     private var mDrawable: Drawable? = null
+
+
+    /**
+     * I dont know
+     */
+    private var mWidth = 0f
+    private var mHeight = 0f
+
+    /**
+     * I dont know
+     */
+    private var rawWidth = 0
+    private var rawHeight = 0
+
+    /**
+     * Setting up ratios default values
+     */
+    private var minimumRatio = DEFAULT_MINIMUM_RATIO
+    private var maximumRatio = DEFAULT_MAXIMUM_RATIO
 
     private val rectF = RectF()
 
@@ -67,12 +91,26 @@ class ImageCropperView : View {
 //        })
     }
 
+    /**
+     * is it neccesary?
+     */
+    private fun setRatio(minimumRatio: Float, maximumRatio: Float) {
+        //minimumRatio = this@ImageCropperView.minimumRatio
+        //maximumRatio = maximumRatio
+    }
+
+
     fun setImageUri(uri: Uri) {
         mImageUri = uri
 
         invalidate()
 
     }
+
+    /**
+     * Setea los dos vertices del rectangulo
+     */
+
 
     fun startMakingSuitableDrawable() {
 //        makeDrawableAsyncTask = MakeDrawableAsyncTask(context, mDrawable, mImageUri, width, width)
@@ -211,8 +249,8 @@ class ImageCropperView : View {
 
         }
 
-        Log.e("x-targetWidth","targetWidth $targetWidth")
-        Log.e("x-targetHeight","targetHeight $targetHeight")
+        Log.e("x-targetWidth", "targetWidth $targetWidth")
+        Log.e("x-targetHeight", "targetHeight $targetHeight")
         //esto es para los valores en el preview de android studio
         setMeasuredDimension(targetWidth, targetHeight)
     }
@@ -224,6 +262,9 @@ class ImageCropperView : View {
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
         Log.e("x-onLayout", "onLayout")
+
+        mWidth = right.toFloat() - left.toFloat()
+        mHeight = bottom.toFloat() - top.toFloat()
 
         startMakingSuitableDrawable()
     }
@@ -251,7 +292,13 @@ class ImageCropperView : View {
          * The third parameter (right) is the width of the rectangle
          * The fourth paramter (bottom) is the heigth of the rectangle
          */
-        mDrawable?.setBounds(50, 50, 600, 500)
+        //mDrawable?.setBounds(50, 50, 600, 500)
+        /**
+         * VER LA DIFERENCIA ENTRE RECTF Y RECT - ---> porque setBounds tambien recive un rectangulo
+         */
+
+        //mDrawable.bounds = rectF
+        mDrawable?.setBounds(rectF.left.toInt(), rectF.top.toInt(), rectF.right.toInt(), rectF.bottom.toInt())
         mDrawable?.draw(canvas)
         //gridDrawable.draw(canvas)
     }
@@ -264,9 +311,11 @@ class ImageCropperView : View {
             options.inSampleSize = 1
             options.inJustDecodeBounds = true
 
-
             BitmapFactory.decodeStream(context.contentResolver!!.openInputStream(uri),
                     null, options)
+
+            rawWidth = options.outWidth
+            rawHeight = options.outHeight
 
             val bitmapp = MediaStore.Images.Media.getBitmap(context?.contentResolver, uri)
 
@@ -277,10 +326,30 @@ class ImageCropperView : View {
         override fun onPostExecute(result: Drawable?) {
             super.onPostExecute(result)
             mDrawable = result
-            Log.e("INVALIDATEEE ", "INVALIDATEEEE")
-            invalidate()
+
+            refreshDrawable()
         }
     }
+
+    private fun refreshDrawable() {
+        getDrawableScaleToFitWithValidRatio()
+
+        invalidate()
+    }
+
+    private fun getDrawableScaleToFitWithValidRatio() {
+        /**
+         * I dont understand
+         */
+        if (getImageSizeRatio() < minimumRatio) {
+            rectF.set(0f, 0f, mHeight * minimumRatio, mHeight)
+        } else {
+            rectF.set(0f, 0f, mWidth, mWidth / maximumRatio)
+        }
+    }
+
+    private fun getImageSizeRatio() = rawWidth / rawHeight
+
 }
 
 
