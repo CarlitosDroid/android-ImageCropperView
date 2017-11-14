@@ -29,7 +29,7 @@ class ImageCropperView : View {
 
     var gestureDetector: GestureDetector? = null
     var drawable: Drawable? = null
-    var makeDrawableAsyncTask1: MakeDrawableAsyncTask1? = null
+    var makeDrawableAsyncTask: MakeDrawableAsyncTask? = null
 
     private lateinit var mImageUri: Uri
     private var gridDrawable = GriddDrawable()
@@ -104,46 +104,6 @@ class ImageCropperView : View {
         mImageUri = uri
 
         invalidate()
-
-    }
-
-    /**
-     * Setea los dos vertices del rectangulo
-     */
-
-
-    fun startMakingSuitableDrawable() {
-//        makeDrawableAsyncTask = MakeDrawableAsyncTask(context, mDrawable, mImageUri, width, width)
-//
-//        makeDrawableAsyncTask!!.execute()
-
-
-        Log.e("INGRESAAA ", "INGRESAAA")
-
-        //makeDrawableAsyncTask = MakeDrawableAsyncTask(context, mImageUri, width, height)
-
-        makeDrawableAsyncTask1 = MakeDrawableAsyncTask1(mImageUri, width, height)
-
-//        object : MakeDrawableAsyncTask(context, mImageUri, width, height) {
-//
-//            override fun onPostExecute(result: Drawable?) {
-//                super.onPostExecute(result)
-//
-//                mDrawable = result
-//                Log.e("INGRESAAA11 ","INGRESAAA11")
-//                invalidate()
-//
-//
-//                //mImageRawWidth = getRawWidth()
-//                //mImageRawHeight = getRawHeight()
-//
-//                //onDrawableChanged()
-//            }
-//
-//
-//        }.execute()
-
-        makeDrawableAsyncTask1?.execute()
 
     }
 
@@ -263,9 +223,17 @@ class ImageCropperView : View {
         super.onLayout(changed, left, top, right, bottom)
         Log.e("x-onLayout", "onLayout")
 
+        LogUtil.e("onLayout-left", left.toString())
+        LogUtil.e("onLayout-rigth", right.toString())
+        LogUtil.e("onLayout-bottom", bottom.toString())
+        LogUtil.e("onLayout-top", top.toString())
+
+        //Calculating width and height of the view
         mWidth = right.toFloat() - left.toFloat()
         mHeight = bottom.toFloat() - top.toFloat()
 
+        LogUtil.e("onLayout-mWidth", mWidth.toString())
+        LogUtil.e("onLayout-mHeight", mHeight.toString())
         startMakingSuitableDrawable()
     }
 
@@ -303,8 +271,16 @@ class ImageCropperView : View {
         //gridDrawable.draw(canvas)
     }
 
+    /**
+     * Setea los dos vertices del rectangulo
+     */
 
-    inner class MakeDrawableAsyncTask1(var uri: Uri, targetWidth: Int, targetHeight: Int) : AsyncTask<Void, Void, Drawable>() {
+    fun startMakingSuitableDrawable() {
+        makeDrawableAsyncTask = MakeDrawableAsyncTask(mImageUri, mWidth.toInt(), mHeight.toInt())
+        makeDrawableAsyncTask?.execute()
+    }
+
+    inner class MakeDrawableAsyncTask(var uri: Uri, mWidth: Int, mHeight: Int) : AsyncTask<Void, Void, Drawable>() {
 
         override fun doInBackground(vararg params: Void?): Drawable {
             var options = BitmapFactory.Options()
@@ -332,22 +308,50 @@ class ImageCropperView : View {
     }
 
     private fun refreshDrawable() {
-        getDrawableScaleToFitWithValidRatio()
-
+        setCoordinatesToRectangleAndGetTheDrawableScale()
         invalidate()
     }
 
-    private fun getDrawableScaleToFitWithValidRatio() {
-        /**
-         * I dont understand
-         */
-        if (getImageSizeRatio() < minimumRatio) {
-            rectF.set(0f, 0f, mHeight * minimumRatio, mHeight)
+
+    private fun setCoordinatesToRectangleAndGetTheDrawableScale() {
+
+
+        if (false) {
+            // TODO ESTA PARA ESTA PARA ANALIZAR
+        } else if (rawWidth < mWidth || rawHeight < mHeight) {
+        // TODO AQUI SI USAMOS EL rawWidth y rawHeight en el rectangulo
         } else {
-            rectF.set(0f, 0f, mWidth, mWidth / maximumRatio)
+            // Si la relacion o ratio entre el ancho y alto, es mas pequeño que el minimo 0.8f
+            // significa que tenemos una vista con un ancho mucho mas pequeño que el alto
+            //      =====
+            //      =   =               =============
+            //      =   =               =           =
+            //  if  =   =      else     =           =
+            //      =   =               =============
+            //      =====
+            LogUtil.e("CURRENT RATIO ", "${getImageSizeRatio()}")
+            if (getImageSizeRatio() < minimumRatio) {
+                LogUtil.e("MENOR RATIO ", "$minimumRatio")
+                LogUtil.e("ANCHO ", "${mHeight * minimumRatio}")
+                LogUtil.e("ALTO ", "$mHeight")
+                rectF.set(0f, 0f, mHeight * minimumRatio, mHeight)
+            } else {
+                LogUtil.e("MAYOR RATIO ", "$maximumRatio")
+                LogUtil.e("ANCHO ", "$mWidth")
+                LogUtil.e("ALTO ", "${mWidth / maximumRatio}")
+                rectF.set(0f, 0f, mWidth, mWidth / maximumRatio)
+            }
         }
+
+
+
     }
 
+    /**
+     * Get the ratio of the image's size, the ratio is basically the relation
+     * between the width and the height of the view, width:height -> k
+     * for example: 4:5 -> 0.8, 2:10 -> 0.2, 1:1 -> 1
+     */
     private fun getImageSizeRatio() = rawWidth / rawHeight
 
 }

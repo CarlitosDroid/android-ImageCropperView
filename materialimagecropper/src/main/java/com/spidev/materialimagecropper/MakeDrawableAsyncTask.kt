@@ -112,5 +112,4 @@ open class MakeDrawableAsyncTask
 
 
 
-
 }

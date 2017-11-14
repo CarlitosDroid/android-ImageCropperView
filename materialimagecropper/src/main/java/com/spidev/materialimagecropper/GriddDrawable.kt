@@ -3,6 +3,7 @@ package com.spidev.materialimagecropper
 import android.animation.ValueAnimator
 import android.graphics.*
 import android.graphics.drawable.Drawable
+import android.util.Log
 import android.view.animation.LinearInterpolator
 
 /**
