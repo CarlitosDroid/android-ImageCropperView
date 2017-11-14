@@ -45,8 +45,8 @@ class ImageCropperView : View {
     /**
      * I dont know
      */
-    private var rawWidth = 0
-    private var rawHeight = 0
+    private var rawImageWidth = 0f
+    private var rawImageHeight = 0f
 
     /**
      * Setting up ratios default values
@@ -290,8 +290,8 @@ class ImageCropperView : View {
             BitmapFactory.decodeStream(context.contentResolver!!.openInputStream(uri),
                     null, options)
 
-            rawWidth = options.outWidth
-            rawHeight = options.outHeight
+            rawImageWidth = options.outWidth.toFloat()
+            rawImageHeight = options.outHeight.toFloat()
 
             val bitmapp = MediaStore.Images.Media.getBitmap(context?.contentResolver, uri)
 
@@ -312,14 +312,21 @@ class ImageCropperView : View {
         invalidate()
     }
 
-
     private fun setCoordinatesToRectangleAndGetTheDrawableScale() {
-
 
         if (false) {
             // TODO ESTA PARA ESTA PARA ANALIZAR
-        } else if (rawWidth < mWidth || rawHeight < mHeight) {
-        // TODO AQUI SI USAMOS EL rawWidth y rawHeight en el rectangulo
+            LogUtil.e("TRYY RATIO ", "${getImageSizeRatio()}")
+        } else if (rawImageWidth < mWidth || rawImageHeight < mHeight) {
+            // TODO AQUI SI USAMOS EL rawWidth y rawHeight en el rectangulo
+            LogUtil.e("TRYY2 RATIO ", "${getImageSizeRatio()}")
+            //Si el ratio es menor al ratio maximo, signifa que tenemos una imagen que tiene menos ancho y mas alto
+            //por esta razon tratamos de ajustar la imagen
+            if (getImageSizeRatio() < maximumRatio) {
+                rectF.set(0f, 0f, rawImageWidth, rawImageWidth / minimumRatio)
+            } else {
+                rectF.set(0f, 0f, rawImageHeight * maximumRatio, rawImageHeight)
+            }
         } else {
             // Si la relacion o ratio entre el ancho y alto, es mas pequeño que el minimo 0.8f
             // significa que tenemos una vista con un ancho mucho mas pequeño que el alto
@@ -342,9 +349,6 @@ class ImageCropperView : View {
                 rectF.set(0f, 0f, mWidth, mWidth / maximumRatio)
             }
         }
-
-
-
     }
 
     /**
@@ -352,7 +356,7 @@ class ImageCropperView : View {
      * between the width and the height of the view, width:height -> k
      * for example: 4:5 -> 0.8, 2:10 -> 0.2, 1:1 -> 1
      */
-    private fun getImageSizeRatio() = rawWidth / rawHeight
+    private fun getImageSizeRatio() = rawImageWidth / rawImageHeight
 
 }
 
