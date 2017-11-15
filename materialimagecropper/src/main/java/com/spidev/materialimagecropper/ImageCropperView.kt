@@ -23,6 +23,7 @@ import android.widget.Toast
 
 const val DEFAULT_MINIMUM_RATIO = 4f / 5f
 const val DEFAULT_MAXIMUM_RATIO = 1.91f
+//RATIO VALUE BY DEFAULT TO SPECIFY A SQUARE(1:1)
 const val DEFAULT_RATIO = 1f
 
 class ImageCropperView : View {
@@ -146,20 +147,27 @@ class ImageCropperView : View {
     /**
      * (1)
      * This method is called before onLayout method
+     * @param widthMeasureSpec horizontal space requirement imposed by the PARENT
+     * @param heightMeasureSpec vertical space requirement imposed by the PARENT
+     * widthMeasureSpec and heightMeasureSpec are values imposed by the PARENT
+     * for example:
+     * XXHDPI -> 200dp x 200dp -> widthMeasureSpec 600px, heightMeasureSpec 600px
+     *
      */
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         Log.e("x-onMeasure", "onMeasure")
 
 
-        //View Width and Height sizes, but in Pixel something like 640x480, 720x200
-        val widthSize = MeasureSpec.getSize(widthMeasureSpec)
-        val heightSize = MeasureSpec.getSize(heightMeasureSpec)
+        //View Width and Height sizes of the PARENT, but in Pixel something like 640x480, 720x200
+        val parentWidthSize = MeasureSpec.getSize(widthMeasureSpec)
+        val parentHeightSize = MeasureSpec.getSize(heightMeasureSpec)
 
-        //Long number used for the setMeasuredDimension(,) for the ViewGroup
+        Log.e("x-parent-w-h-size", " $parentWidthSize x $parentHeightSize")
+
+        //Long number used for the setMeasuredDimension(,) for the ImageCropperView
         val widthMode = MeasureSpec.getMode(widthMeasureSpec)
         val heightMode = MeasureSpec.getMode(heightMeasureSpec)
-
 
         //values for
         var targetWidth = 1
@@ -169,12 +177,12 @@ class ImageCropperView : View {
 
             MeasureSpec.EXACTLY -> {
                 Log.e("x-WIDTH EXACTLY", "WIDTH EXACTLY")
-                targetWidth = widthSize
+                targetWidth = parentWidthSize
 
                 when (heightMode) {
                     MeasureSpec.EXACTLY -> {
                         Log.e("x-HEIGHT EXACTLY", "HEIGHT EXACTLY")
-                        targetHeight = heightSize
+                        targetHeight = parentHeightSize
                     }
                     MeasureSpec.AT_MOST -> {
                         Log.e("x-HEIGHT AT_MOST", "HEIGHT AT_MOST")
@@ -183,8 +191,6 @@ class ImageCropperView : View {
                         Log.e("x-HEIGHT UNSPECIFIED", "HEIGHT UNSPECIFIED")
                     }
                 }
-
-
             }
 
             MeasureSpec.AT_MOST -> {
@@ -192,10 +198,31 @@ class ImageCropperView : View {
                 when (heightMode) {
                     MeasureSpec.EXACTLY -> {
                         Log.e("x-HEIGHT EXACTLY", "HEIGHT EXACTLY")
+                        // if we have a vertical line, wrap_content-match_parent
+                        // set the all the height of the parent
+                        // and the minium between the width of the parent or the height of the parent x ratio
+                        targetHeight = parentHeightSize
+                        targetWidth = Math.min(parentWidthSize, targetHeight)
 
                     }
                     MeasureSpec.AT_MOST -> {
                         Log.e("x-HEIGHT AT_MOST", "HEIGHT AT_MOST")
+
+                        var specRatio = parentWidthSize.toFloat() / parentHeightSize.toFloat()
+                        Log.e("x-DEFAULT_RATIO", "DEFAULT_RATIO $DEFAULT_RATIO")
+                        Log.e("x-DEFAULT_RATIO", "DEFAULT_RATIO $specRatio")
+
+                        if (specRatio == DEFAULT_RATIO) {
+                            targetWidth = parentWidthSize
+                            targetHeight = parentHeightSize
+                        } else if (specRatio > DEFAULT_RATIO) {
+                            targetWidth = (targetHeight * DEFAULT_RATIO).toInt()
+                            targetHeight = parentHeightSize
+                        } else {
+                            targetWidth = parentWidthSize
+                            targetHeight = (targetWidth / DEFAULT_RATIO).toInt()
+                        }
+
                     }
                     MeasureSpec.UNSPECIFIED -> {
                         Log.e("x-HEIGHT UNSPECIFIED", "HEIGHT UNSPECIFIED")
