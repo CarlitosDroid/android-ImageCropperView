@@ -24,7 +24,7 @@ class MaterialImageCropperActivity : AppCompatActivity() {
                     .setAction("Action", null).show()
         }
 
-        val sourceUri = intent.data
+        /*val sourceUri = intent.data
 
         val destinationUri = intent.extras[MediaStore.EXTRA_OUTPUT]
         val preferredRatio = intent.extras[Constants.EXTRA_PREFERRED_RATIO]
@@ -43,10 +43,11 @@ class MaterialImageCropperActivity : AppCompatActivity() {
         Log.e("x-maximunRatio ", "$maximunRatio")
         Log.e("x-widthSpecification ", "$widthSpecification")
         Log.e("x-heightSpecification ", "$heightSpecification")
-        Log.e("x-quality ", "$quality")
+        Log.e("x-quality ", "$quality")*/
 
-        micPicture.setImageUri(sourceUri)
-        micPicture.crop(widthSpecification, heightSpecification)
+        //micPicture.setImageUri(sourceUri)
+        micPicture.setImageUri()
+        //micPicture.crop(widthSpecification, heightSpecification)
         //micPicture.setImageUri()
     }
 

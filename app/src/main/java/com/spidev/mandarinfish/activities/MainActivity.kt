@@ -1,4 +1,4 @@
-package com.spidev.mandarinfish
+package com.spidev.mandarinfish.activities
 
 
 import kotlinx.android.synthetic.main.activity_main.*
@@ -24,7 +24,8 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
-import com.spidev.mandarinfish.activities.MaterialImageCropperActivity
+import com.spidev.mandarinfish.BuildConfig
+import com.spidev.mandarinfish.R
 import com.spidev.mandarinfish.commons.Constants
 import com.spidev.mandarinfish.fragments.CameraDialogFragment
 import kotlinx.android.synthetic.main.content_main.*

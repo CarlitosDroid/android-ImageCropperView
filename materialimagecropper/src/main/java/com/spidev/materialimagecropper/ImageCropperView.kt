@@ -101,11 +101,16 @@ class ImageCropperView : View {
     }
 
 
-    fun setImageUri(uri: Uri) {
-        mImageUri = uri
+    /*fun setImageUri(uri: Uri) {
+        mImageUri = Uri.parse("content://media/external/images/media/22763")
 
         invalidate()
+    }*/
 
+    fun setImageUri() {
+        mImageUri = Uri.parse("content://media/external/images/media/22763")
+
+        invalidate()
     }
 
 
@@ -338,46 +343,62 @@ class ImageCropperView : View {
 
     private fun refreshDrawable() {
         setCoordinatesToRectangleAndGetTheDrawableScale()
+
+
+
         invalidate()
     }
 
+
     private fun setCoordinatesToRectangleAndGetTheDrawableScale() {
 
-        if (false) {
-            // TODO ESTA PARA ESTA PARA ANALIZAR
-            LogUtil.e("TRYY RATIO ", "${getImageSizeRatio()}")
-        } else if (rawImageWidth < mWidth || rawImageHeight < mHeight) {
-            // TODO AQUI SI USAMOS EL rawWidth y rawHeight en el rectangulo
-            LogUtil.e("TRYY2 RATIO ", "${getImageSizeRatio()}")
-            //Si el ratio es menor al ratio maximo, signifa que tenemos una imagen que tiene menos ancho y mas alto
-            //por esta razon tratamos de ajustar la imagen
-            if (getImageSizeRatio() < maximumRatio) {
-                rectF.set(0f, 0f, rawImageWidth, rawImageWidth / minimumRatio)
-            } else {
-                rectF.set(0f, 0f, rawImageHeight * maximumRatio, rawImageHeight)
-            }
+
+        // Si la relacion o ratio entre el ancho y alto, es mas pequeño que el minimo 0.8f
+        // significa que tenemos una vista con un ancho mucho mas pequeño que el alto
+        //      =====
+        //      =   =               =============
+        //      =   =               =           =
+        //  if  =   =      else     =           =
+        //      =   =               =============
+        //      =====
+        LogUtil.e("CURRENT RATIO ", "${getImageSizeRatio()}")
+        LogUtil.e("ANCHO VISTA ", "${mWidth}")
+        LogUtil.e("ALTO VISTA", "$mHeight")
+
+        if (getImageSizeRatio() == 1f) {
+
+            rectF.set(0f, 0f, mWidth, mHeight)
+
+
+        } else if (getImageSizeRatio() < 1f) {
+
+
+            //rectF.set(0f, 0f, rawImageWidth, rawImageHeight)
+
+
+            var x1 = 0f
+            var y1 = ((rawImageHeight - rawImageWidth) / 2)
+            var x2 = rawImageWidth
+            var y2 = (rawImageWidth + y1)
+
+
+
+            LogUtil.e("X1  ", "$x1")
+            LogUtil.e("Y1 ", "$y1")
+            LogUtil.e("X2  ", "$x2")
+            LogUtil.e("Y2 ", "$y2")
+
+            rectF.set(x1, -y1, x2, y2)
+            //rectF.intersect(x1, -y1, x2, -y2)
+
+
         } else {
-            // Si la relacion o ratio entre el ancho y alto, es mas pequeño que el minimo 0.8f
-            // significa que tenemos una vista con un ancho mucho mas pequeño que el alto
-            //      =====
-            //      =   =               =============
-            //      =   =               =           =
-            //  if  =   =      else     =           =
-            //      =   =               =============
-            //      =====
-            LogUtil.e("CURRENT RATIO ", "${getImageSizeRatio()}")
-            if (getImageSizeRatio() < minimumRatio) {
-                LogUtil.e("MENOR RATIO ", "$minimumRatio")
-                LogUtil.e("ANCHO ", "${mHeight * minimumRatio}")
-                LogUtil.e("ALTO ", "$mHeight")
-                rectF.set(0f, 0f, mHeight * minimumRatio, mHeight)
-            } else {
-                LogUtil.e("MAYOR RATIO ", "$maximumRatio")
-                LogUtil.e("ANCHO ", "$mWidth")
-                LogUtil.e("ALTO ", "${mWidth / maximumRatio}")
-                rectF.set(0f, 0f, mWidth, mWidth / maximumRatio)
-            }
+            LogUtil.e("MAYOR RATIO ", "$maximumRatio")
+            LogUtil.e("ANCHO ", "$mWidth")
+            LogUtil.e("ALTO ", "${mWidth / maximumRatio}")
+            rectF.set(0f, 0f, mWidth, mWidth / maximumRatio)
         }
+
     }
 
     /**
