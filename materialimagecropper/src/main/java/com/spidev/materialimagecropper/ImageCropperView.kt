@@ -186,6 +186,8 @@ class ImageCropperView : View {
                     }
                     MeasureSpec.AT_MOST -> {
                         Log.e("x-HEIGHT AT_MOST", "HEIGHT AT_MOST")
+                        targetWidth = parentWidthSize
+                        targetHeight = parentWidthSize
                     }
                     MeasureSpec.UNSPECIFIED -> {
                         Log.e("x-HEIGHT UNSPECIFIED", "HEIGHT UNSPECIFIED")
@@ -201,8 +203,8 @@ class ImageCropperView : View {
                         // if we have a vertical line, wrap_content-match_parent
                         // set the all the height of the parent
                         // and the minium between the width of the parent or the height of the parent x ratio
-                        targetHeight = parentHeightSize
-                        targetWidth = Math.min(parentWidthSize, targetHeight)
+                        targetHeight = parentWidthSize
+                        targetWidth = parentWidthSize
 
                     }
                     MeasureSpec.AT_MOST -> {
