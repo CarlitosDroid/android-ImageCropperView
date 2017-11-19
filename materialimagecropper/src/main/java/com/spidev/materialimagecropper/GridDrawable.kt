@@ -13,35 +13,40 @@ import android.view.animation.LinearInterpolator
 
 class GridDrawable : Drawable() {
 
+    // Class name for log
+    private val TAG = GridDrawable::class.java.name
 
-    private val TAG  = GridDrawable::class.java.name
-
-    private val LINE_COLOR = Color.WHITE
-    private val LINE_BORDER_COLOR = 0x44888888
-    private val LINE_STROKE_WIDTH = 12f
+    //Values for animations
     private val TIME_BEFORE_FADE: Long = 300
     private val TIME_TO_FADE: Long = 300
 
+    //Properties for grid's line
+    private val LINE_COLOR = Color.WHITE
+    private val LINE_STROKE_WIDTH = 5f
 
-    private var mLineBorderPaint = Paint()
+    //Properties for grid line border
+    private val LINE_BORDER_COLOR = Color.RED
+    private val LINE_BORDER_STROKE_WIDTH = 2f
 
     private val mAnimator = ValueAnimator()
 
     private val mAlpha = 1f
 
     private var mLinePaint = Paint()
+    private var mLineBorderPaint = Paint()
 
     init {
-
+        //Configuring grid's lines
         mLinePaint = Paint()
         mLinePaint.style = Paint.Style.STROKE
         mLinePaint.color = LINE_COLOR
         mLinePaint.strokeWidth = LINE_STROKE_WIDTH
 
+        //Configuring up grid line borders
         mLineBorderPaint = Paint()
-        mLineBorderPaint.setStyle(Paint.Style.STROKE)
-        mLineBorderPaint.setColor(LINE_BORDER_COLOR)
-        mLineBorderPaint.setStrokeWidth(LINE_STROKE_WIDTH)
+        mLineBorderPaint.style = Paint.Style.STROKE
+        mLineBorderPaint.color = LINE_BORDER_COLOR
+        mLineBorderPaint.strokeWidth = LINE_BORDER_STROKE_WIDTH
 
         mAnimator.duration = TIME_TO_FADE
         mAnimator.startDelay = TIME_BEFORE_FADE
@@ -51,6 +56,7 @@ class GridDrawable : Drawable() {
 
         //mAnimator.start()
     }
+
     override fun draw(canvas: Canvas?) {
         mLinePaint.alpha = Math.round(mAlpha * 255)
 
@@ -59,26 +65,39 @@ class GridDrawable : Drawable() {
 
         //Basically bounds.left, bounds.right, bounds.top, bounds.bottom are the coordinates
 
-        val left = width / 3
-        val top = height / 3
+        val thirdOfTheWidth = width / 3
+        val thirdOfTheHeight = height / 3
+
+        LogUtil.e(TAG, "width $width")
+        LogUtil.e(TAG, "height $height")
+        LogUtil.e(TAG, "left ${bounds.left}")
+        LogUtil.e(TAG, "right ${bounds.right}")
+        LogUtil.e(TAG, "top ${bounds.top}")
+        LogUtil.e(TAG, "bottom ${bounds.bottom}")
 
 
-        LogUtil.e(TAG,"width $width")
-        LogUtil.e(TAG,"height $height")
-        LogUtil.e(TAG,"left ${bounds.left}")
-        LogUtil.e(TAG,"right ${bounds.right}")
-        LogUtil.e(TAG,"top ${bounds.top}")
-        LogUtil.e(TAG,"bottom ${bounds.bottom}")
+        //Drawing vertical grid lines
+        canvas?.drawLine(thirdOfTheWidth.toFloat(), 0f, thirdOfTheWidth.toFloat(), height.toFloat(), mLinePaint)
+        canvas?.drawLine((thirdOfTheWidth * 2).toFloat(), 0f, (thirdOfTheWidth * 2).toFloat(), height.toFloat(), mLinePaint)
+        //Drawing horizontal grid lines
+        canvas?.drawLine(0f, thirdOfTheHeight.toFloat(), width.toFloat(), thirdOfTheHeight.toFloat(), mLinePaint)
+        canvas?.drawLine(0f, (thirdOfTheHeight * 2).toFloat(), width.toFloat(), (thirdOfTheHeight * 2).toFloat(), mLinePaint)
 
-        canvas?.drawLine(left.toFloat(), bounds.top.toFloat(), left.toFloat(), bounds.bottom.toFloat(), mLinePaint)
-        canvas?.drawLine((left*2).toFloat(), bounds.top.toFloat(), (left*2).toFloat(), bounds.bottom.toFloat(), mLinePaint)
+        //Drawing borders of the first vertical line
+        canvas?.drawLine(thirdOfTheWidth.toFloat() - LINE_STROKE_WIDTH / 2, 0f, thirdOfTheWidth.toFloat() - LINE_STROKE_WIDTH / 2, height.toFloat(), mLineBorderPaint)
+        canvas?.drawLine(thirdOfTheWidth.toFloat() + LINE_STROKE_WIDTH / 2, 0f, thirdOfTheWidth.toFloat() + LINE_STROKE_WIDTH / 2, height.toFloat(), mLineBorderPaint)
 
+        //Drawing borders of the second vertical line
+        canvas?.drawLine((thirdOfTheWidth * 2).toFloat() - LINE_STROKE_WIDTH / 2, 0f, (thirdOfTheWidth * 2).toFloat() - LINE_STROKE_WIDTH / 2, height.toFloat(), mLineBorderPaint)
+        canvas?.drawLine((thirdOfTheWidth * 2).toFloat() + LINE_STROKE_WIDTH / 2, 0f, (thirdOfTheWidth * 2).toFloat() + LINE_STROKE_WIDTH / 2, height.toFloat(), mLineBorderPaint)
 
-        canvas?.drawLine(bounds.left.toFloat(), top.toFloat(), width.toFloat(), top.toFloat(), mLinePaint)
-        //canvas?.drawLine(bounds.left.toFloat(), (top*2).toFloat(), width.toFloat(), (top*2).toFloat(), mLinePaint)
+        //Drawing borders of the first horizontal line
+        canvas?.drawLine(0f, thirdOfTheHeight.toFloat() - LINE_STROKE_WIDTH / 2, width.toFloat(), thirdOfTheHeight.toFloat() - LINE_STROKE_WIDTH / 2, mLineBorderPaint)
+        canvas?.drawLine(0f, thirdOfTheHeight.toFloat() + LINE_STROKE_WIDTH / 2, width.toFloat(), thirdOfTheHeight.toFloat() + LINE_STROKE_WIDTH / 2, mLineBorderPaint)
 
-
-
+        //Drawing borders of the second horizontal line
+        canvas?.drawLine(0f, (thirdOfTheHeight * 2).toFloat() - LINE_STROKE_WIDTH / 2, width.toFloat(), (thirdOfTheHeight * 2).toFloat() - LINE_STROKE_WIDTH / 2, mLineBorderPaint)
+        canvas?.drawLine(0f, (thirdOfTheHeight * 2).toFloat() + LINE_STROKE_WIDTH / 2, width.toFloat(), (thirdOfTheHeight * 2).toFloat() + LINE_STROKE_WIDTH / 2, mLineBorderPaint)
     }
 
     override fun setAlpha(alpha: Int) {

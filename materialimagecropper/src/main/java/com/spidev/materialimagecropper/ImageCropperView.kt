@@ -400,7 +400,12 @@ class ImageCropperView : View {
         LogUtil.e("rectF bottom ", "${rectF.bottom}")
         LogUtil.e("rectF width ", "${rectF.width()}")
         LogUtil.e("rectF height ", "${rectF.bottom + rectF.top}")
-        gridDrawable.setBounds(rectF.left.toInt(), rectF.top.toInt(), rectF.right.toInt(), rectF.bottom.toInt())
+
+
+        if(rectF.top < 0){
+            gridDrawable.setBounds(rectF.left.toInt(), Math.abs(rectF.top.toInt()), rectF.right.toInt(), rectF.bottom.toInt())
+        }
+
     }
 
     /**
