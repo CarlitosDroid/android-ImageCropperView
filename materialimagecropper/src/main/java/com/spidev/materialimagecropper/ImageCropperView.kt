@@ -1,7 +1,6 @@
 package com.spidev.materialimagecropper
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.RectF
@@ -13,7 +12,6 @@ import android.provider.MediaStore
 import android.util.AttributeSet
 import android.util.Log
 import android.view.GestureDetector
-import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
 
@@ -33,7 +31,7 @@ class ImageCropperView : View {
     var makeDrawableAsyncTask: MakeDrawableAsyncTask? = null
 
     private lateinit var mImageUri: Uri
-    private var gridDrawable = GriddDrawable()
+    private var gridDrawable = GridDrawable()
     private var mDrawable: Drawable? = null
 
 
@@ -302,7 +300,7 @@ class ImageCropperView : View {
         //mDrawable.bounds = rectF
         mDrawable?.setBounds(rectF.left.toInt(), rectF.top.toInt(), rectF.right.toInt(), rectF.bottom.toInt())
         mDrawable?.draw(canvas)
-        //gridDrawable.draw(canvas)
+        gridDrawable.draw(canvas)
     }
 
     /**
@@ -344,11 +342,10 @@ class ImageCropperView : View {
     private fun refreshDrawable() {
         setCoordinatesToRectangleAndGetTheDrawableScale()
 
-
+        updateGridDrawable()
 
         invalidate()
     }
-
 
     private fun setCoordinatesToRectangleAndGetTheDrawableScale() {
 
@@ -375,13 +372,10 @@ class ImageCropperView : View {
 
             //rectF.set(0f, 0f, rawImageWidth, rawImageHeight)
 
-
             var x1 = 0f
             var y1 = ((rawImageHeight - rawImageWidth) / 2)
             var x2 = rawImageWidth
             var y2 = (rawImageWidth + y1)
-
-
 
             LogUtil.e("X1  ", "$x1")
             LogUtil.e("Y1 ", "$y1")
@@ -391,14 +385,22 @@ class ImageCropperView : View {
             rectF.set(x1, -y1, x2, y2)
             //rectF.intersect(x1, -y1, x2, -y2)
 
-
         } else {
             LogUtil.e("MAYOR RATIO ", "$maximumRatio")
             LogUtil.e("ANCHO ", "$mWidth")
             LogUtil.e("ALTO ", "${mWidth / maximumRatio}")
             rectF.set(0f, 0f, mWidth, mWidth / maximumRatio)
         }
+    }
 
+    fun updateGridDrawable(){
+        LogUtil.e("rectF left ", "${rectF.left}")
+        LogUtil.e("rectF top ", "${rectF.top}")
+        LogUtil.e("rectF right ", "${rectF.right}")
+        LogUtil.e("rectF bottom ", "${rectF.bottom}")
+        LogUtil.e("rectF width ", "${rectF.width()}")
+        LogUtil.e("rectF height ", "${rectF.bottom + rectF.top}")
+        gridDrawable.setBounds(rectF.left.toInt(), rectF.top.toInt(), rectF.right.toInt(), rectF.bottom.toInt())
     }
 
     /**

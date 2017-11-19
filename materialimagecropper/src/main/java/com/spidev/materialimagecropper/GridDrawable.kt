@@ -1,20 +1,24 @@
 package com.spidev.materialimagecropper
 
 import android.animation.ValueAnimator
+import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.Drawable
-import android.util.Log
+import android.support.v4.content.ContextCompat
 import android.view.animation.LinearInterpolator
 
 /**
  * Created by Carlos Leonardo Camilo Vargas Huamán on 10/22/17.
  */
 
-class GriddDrawable: Drawable() {
+class GridDrawable : Drawable() {
+
+
+    private val TAG  = GridDrawable::class.java.name
 
     private val LINE_COLOR = Color.WHITE
     private val LINE_BORDER_COLOR = 0x44888888
-    private val LINE_STROKE_WIDTH = 1f
+    private val LINE_STROKE_WIDTH = 12f
     private val TIME_BEFORE_FADE: Long = 300
     private val TIME_TO_FADE: Long = 300
 
@@ -53,12 +57,27 @@ class GriddDrawable: Drawable() {
         val width = bounds.width()
         val height = bounds.height()
 
-        val left = bounds.left + width / 3
-        val right = left + width / 3
-        val top = bounds.top + height / 3
-        val bottom = top + height / 3
+        //Basically bounds.left, bounds.right, bounds.top, bounds.bottom are the coordinates
 
-        canvas?.drawLine(left.toFloat() - 1, bounds.top.toFloat(), left.toFloat() - 1, bounds.bottom.toFloat(), mLinePaint)
+        val left = width / 3
+        val top = height / 3
+
+
+        LogUtil.e(TAG,"width $width")
+        LogUtil.e(TAG,"height $height")
+        LogUtil.e(TAG,"left ${bounds.left}")
+        LogUtil.e(TAG,"right ${bounds.right}")
+        LogUtil.e(TAG,"top ${bounds.top}")
+        LogUtil.e(TAG,"bottom ${bounds.bottom}")
+
+        canvas?.drawLine(left.toFloat(), bounds.top.toFloat(), left.toFloat(), bounds.bottom.toFloat(), mLinePaint)
+        canvas?.drawLine((left*2).toFloat(), bounds.top.toFloat(), (left*2).toFloat(), bounds.bottom.toFloat(), mLinePaint)
+
+
+        canvas?.drawLine(bounds.left.toFloat(), top.toFloat(), width.toFloat(), top.toFloat(), mLinePaint)
+        //canvas?.drawLine(bounds.left.toFloat(), (top*2).toFloat(), width.toFloat(), (top*2).toFloat(), mLinePaint)
+
+
 
     }
 
