@@ -62,6 +62,7 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
         }
 
         fabNextActivity.setOnClickListener { _ ->
+            //startMaterialImageCropperActivity()
             if (galleryImageUri != null) {
                 val destinationUri = Uri.fromFile(File(externalCacheDir, "test.jpg"))
                 startMaterialImageCropperActivity(galleryImageUri!!, destinationUri)
@@ -69,6 +70,11 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
                 Toast.makeText(this, "Select a Picture from Gallery", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun startMaterialImageCropperActivity() {
+        val intent = Intent(this, MaterialImageCropperActivity::class.java)
+        startActivity(intent)
     }
 
     private fun startMaterialImageCropperActivity(sourceUri: Uri, destinationUri: Uri) {

@@ -66,6 +66,7 @@ class ImageCropperView : View {
     }
 
     fun initialize(attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int) {
+
 //        gestureDetector = GestureDetector(this.context, object : GestureDetector.OnGestureListener {
 //            override fun onShowPress(p0: MotionEvent?) {
 //
@@ -98,19 +99,17 @@ class ImageCropperView : View {
         //maximumRatio = maximumRatio
     }
 
-
-    /*fun setImageUri(uri: Uri) {
-        mImageUri = Uri.parse("content://media/external/images/media/22763")
+    fun setImageUri(uri: Uri) {
+        mImageUri = uri
 
         invalidate()
-    }*/
+    }
 
     fun setImageUri() {
         mImageUri = Uri.parse("content://media/external/images/media/22763")
 
         invalidate()
     }
-
 
     fun crop(widthSpecification: Int, heightSpecification: Int) {
 
@@ -341,14 +340,11 @@ class ImageCropperView : View {
 
     private fun refreshDrawable() {
         setCoordinatesToRectangleAndGetTheDrawableScale()
-
         updateGridDrawable()
-
         invalidate()
     }
 
     private fun setCoordinatesToRectangleAndGetTheDrawableScale() {
-
 
         // Si la relacion o ratio entre el ancho y alto, es mas pequeño que el minimo 0.8f
         // significa que tenemos una vista con un ancho mucho mas pequeño que el alto
@@ -358,38 +354,40 @@ class ImageCropperView : View {
         //  if  =   =      else     =           =
         //      =   =               =============
         //      =====
+        LogUtil.e("RAW IMAGE WIDTH ", "$rawImageWidth")
+        LogUtil.e("RAW IMAGE HEIGHT  ", "$rawImageHeight")
         LogUtil.e("CURRENT RATIO ", "${getImageSizeRatio()}")
         LogUtil.e("ANCHO VISTA ", "${mWidth}")
         LogUtil.e("ALTO VISTA", "$mHeight")
 
-        if (getImageSizeRatio() == 1f) {
-
+        if (getImageSizeRatio() == 1f) {// height is equals to width
             rectF.set(0f, 0f, mWidth, mHeight)
+        } else if (getImageSizeRatio() < 1f) { // height is bigger then width
 
-
-        } else if (getImageSizeRatio() < 1f) {
-
-
-            //rectF.set(0f, 0f, rawImageWidth, rawImageHeight)
-
-            var x1 = 0f
-            var y1 = ((rawImageHeight - rawImageWidth) / 2)
-            var x2 = rawImageWidth
-            var y2 = (rawImageWidth + y1)
+            val x1 = 0f
+            val y1 = (rawImageHeight - rawImageWidth) / 2
+            val x2 = rawImageWidth
+            val y2 = x2 + y1
 
             LogUtil.e("X1  ", "$x1")
-            LogUtil.e("Y1 ", "$y1")
+            LogUtil.e("Y1 ", "${-y1}")
             LogUtil.e("X2  ", "$x2")
             LogUtil.e("Y2 ", "$y2")
 
             rectF.set(x1, -y1, x2, y2)
             //rectF.intersect(x1, -y1, x2, -y2)
+        } else {// width is bigger then height
+            val x1 = (rawImageWidth- rawImageHeight)/2
+            val y1 = 0f
+            val y2 = rawImageHeight
+            val x2 = y2 + x1
 
-        } else {
-            LogUtil.e("MAYOR RATIO ", "$maximumRatio")
-            LogUtil.e("ANCHO ", "$mWidth")
-            LogUtil.e("ALTO ", "${mWidth / maximumRatio}")
-            rectF.set(0f, 0f, mWidth, mWidth / maximumRatio)
+            LogUtil.e("X1  ", "${-x1}")
+            LogUtil.e("Y1 ", "$y1")
+            LogUtil.e("X2  ", "$x2")
+            LogUtil.e("Y2 ", "$y2")
+
+            rectF.set(-x1, y1, x2, y2)
         }
     }
 
@@ -401,11 +399,11 @@ class ImageCropperView : View {
         LogUtil.e("rectF width ", "${rectF.width()}")
         LogUtil.e("rectF height ", "${rectF.bottom + rectF.top}")
 
-
         if(rectF.top < 0){
             gridDrawable.setBounds(rectF.left.toInt(), Math.abs(rectF.top.toInt()), rectF.right.toInt(), rectF.bottom.toInt())
         }
 
+        gridDrawable.invalidateSelf()
     }
 
     /**
