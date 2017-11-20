@@ -53,7 +53,7 @@ class GridDrawable : Drawable() {
         mAnimator.addUpdateListener { animation ->
 
             mAlpha = animation.animatedValue as Float
-           // LogUtil.e(TAG, "ANIMATOR  $mAlpha")
+            // LogUtil.e(TAG, "ANIMATOR  $mAlpha")
             mLinePaint.alpha = Math.round(mAlpha * 255)
             invalidateSelf()
         }
@@ -62,18 +62,20 @@ class GridDrawable : Drawable() {
     }
 
     override fun draw(canvas: Canvas?) {
-       // LogUtil.e(TAG, "ANIMATOR2  ${mAlpha * 255}")
+        // LogUtil.e(TAG, "ANIMATOR2  ${mAlpha * 255}")
         mLinePaint.alpha = Math.round(mAlpha * 255)
         mLineBorderPaint.alpha = Math.round(mAlpha * 0x44)
 
         val width = bounds.width()
         val height = bounds.height()
-
+        LogUtil.e(TAG, "width  $width")
+        LogUtil.e(TAG, "height  $height")
         //Basically bounds.left, bounds.right, bounds.top, bounds.bottom are the coordinates
 
         val thirdOfTheWidth = width / 3
         val thirdOfTheHeight = height / 3
-
+        LogUtil.e(TAG, "thirdOfTheWidth  $thirdOfTheWidth")
+        LogUtil.e(TAG, "thirdOfTheHeight  $thirdOfTheHeight")
         //Drawing borders of the first vertical line
         canvas?.drawLine(thirdOfTheWidth.toFloat() - LINE_STROKE_WIDTH / 2, 0f, thirdOfTheWidth.toFloat() - LINE_STROKE_WIDTH / 2, height.toFloat(), mLineBorderPaint)
         canvas?.drawLine(thirdOfTheWidth.toFloat() + LINE_STROKE_WIDTH / 2, 0f, thirdOfTheWidth.toFloat() + LINE_STROKE_WIDTH / 2, height.toFloat(), mLineBorderPaint)
@@ -100,7 +102,7 @@ class GridDrawable : Drawable() {
     }
 
     override fun setAlpha(alpha: Int) {
-        LogUtil.e(TAG,"alpha $alpha")
+        LogUtil.e(TAG, "alpha $alpha")
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 

@@ -34,6 +34,10 @@ class ImageCropperView : View {
     private var gridDrawable = GridDrawable()
     private var mDrawable: Drawable? = null
 
+    private var hola1 = 0
+    private var hola2 = 0
+    private var hola3 = 1080
+    private var hola4 = 1080
 
     /**
      * I dont know
@@ -340,7 +344,7 @@ class ImageCropperView : View {
 
     private fun refreshDrawable() {
         setCoordinatesToRectangleAndGetTheDrawableScale()
-        updateGridDrawable()
+        //updateGridDrawable()
         invalidate()
     }
 
@@ -362,48 +366,55 @@ class ImageCropperView : View {
 
         if (getImageSizeRatio() == 1f) {// height is equals to width
             rectF.set(0f, 0f, mWidth, mHeight)
-        } else if (getImageSizeRatio() < 1f) { // height is bigger then width
 
-            val x1 = 0f
-            val y1 = (rawImageHeight - rawImageWidth) / 2
-            val x2 = rawImageWidth
-            val y2 = x2 + y1
-
-            LogUtil.e("X1  ", "$x1")
-            LogUtil.e("Y1 ", "${-y1}")
-            LogUtil.e("X2  ", "$x2")
-            LogUtil.e("Y2 ", "$y2")
-
-            rectF.set(x1, -y1, x2, y2)
-            //rectF.intersect(x1, -y1, x2, -y2)
-        } else {// width is bigger then height
-            val x1 = (rawImageWidth- rawImageHeight)/2
-            val y1 = 0f
-            val y2 = rawImageHeight
-            val x2 = y2 + x1
-
+        } else if (getImageSizeRatio() > 1f) {
+            //si la imagen es *horizontal* y el ancho es mayor que el alto
+            val x1 = (rawImageWidth - mWidth) / 2
             LogUtil.e("X1  ", "${-x1}")
-            LogUtil.e("Y1 ", "$y1")
-            LogUtil.e("X2  ", "$x2")
-            LogUtil.e("Y2 ", "$y2")
 
-            rectF.set(-x1, y1, x2, y2)
+            //4032x2268, 1920x1080 -> ratio -> 1.7777777778, 1.7777777778
+            //rectF.set(-420f, 0f, mWidth + 420f, mHeight)
+
+            //2880x2160 -> ratio -> 1.333333333
+            rectF.set(-180f, 0f, mWidth + 180f, mHeight)
+        } else if ((0.6f < getImageSizeRatio() && getImageSizeRatio() < 0.8f)) {
+            //si la imagen es *horizontal* y el ancho es mayor que el alto
+            rectF.set(0f, 0f - ((rawImageWidth - mWidth) / 2), mWidth, mHeight + ((rawImageWidth - mWidth) / 2))
+        } else if (getImageSizeRatio() < (0.6f) || ((0.8f) < getImageSizeRatio() && getImageSizeRatio() < 1f)) { // height is bigger then width
+            rectF.set(0f, 0f - ((rawImageHeight - mWidth) / 2), mWidth, mHeight + ((rawImageHeight - mWidth) / 2))
         }
     }
 
-    fun updateGridDrawable(){
+    fun veamos() {
+
+        LogUtil.e("hola1  ", "$hola1")
+        LogUtil.e("hola2 ", "$hola2")
+        LogUtil.e("hola3  ", "$hola3")
+        LogUtil.e("hola4 ", "$hola4")
+
+        rectF.set(hola1.toFloat(), hola2.toFloat(), hola3.toFloat(), hola4.toFloat())
+        invalidate()
+
+        hola2 -= 10
+        hola4 += 10
+
+    }
+
+    fun updateGridDrawable() {
         LogUtil.e("rectF left ", "${rectF.left}")
         LogUtil.e("rectF top ", "${rectF.top}")
         LogUtil.e("rectF right ", "${rectF.right}")
         LogUtil.e("rectF bottom ", "${rectF.bottom}")
         LogUtil.e("rectF width ", "${rectF.width()}")
-        LogUtil.e("rectF height ", "${rectF.bottom + rectF.top}")
+        LogUtil.e("rectF height ", "${rectF.height()}")
 
-        if(rectF.top < 0){
+        if (getImageSizeRatio() == 1f) {
+
+        } else if (getImageSizeRatio() < 1f) {
             gridDrawable.setBounds(rectF.left.toInt(), Math.abs(rectF.top.toInt()), rectF.right.toInt(), rectF.bottom.toInt())
+        } else {
+            gridDrawable.setBounds(Math.abs(rectF.left.toInt()), rectF.top.toInt(), rectF.right.toInt(), rectF.bottom.toInt())
         }
-
-        gridDrawable.invalidateSelf()
     }
 
     /**

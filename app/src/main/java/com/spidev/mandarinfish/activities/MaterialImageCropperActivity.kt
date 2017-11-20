@@ -10,6 +10,7 @@ import com.spidev.mandarinfish.R
 import com.spidev.mandarinfish.commons.Constants
 
 import kotlinx.android.synthetic.main.activity_material_image_cropper.*
+import kotlinx.android.synthetic.main.content_main.*
 import kotlinx.android.synthetic.main.content_material_image_cropper.*
 
 class MaterialImageCropperActivity : AppCompatActivity() {
@@ -20,7 +21,7 @@ class MaterialImageCropperActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         fab.setOnClickListener { view ->
-
+            micPicture.veamos()
         }
 
         val sourceUri = intent.data
