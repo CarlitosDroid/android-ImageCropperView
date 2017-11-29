@@ -1,6 +1,7 @@
 package com.spidev.materialimagecropper
 
 import android.content.Context
+import android.database.Cursor
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.RectF
@@ -14,6 +15,10 @@ import android.util.Log
 import android.view.GestureDetector
 import android.view.View
 import android.widget.Toast
+import android.media.ExifInterface
+import java.io.File
+import java.io.IOException
+
 
 /**
  * Created by Carlos Leonardo Camilo Vargas Huamán on 8/13/17.
@@ -363,9 +368,14 @@ class ImageCropperView : View {
         LogUtil.e("CURRENT RATIO ", "${getImageSizeRatio()}")
         LogUtil.e("ANCHO VISTA ", "${mWidth}")
         LogUtil.e("ALTO VISTA", "$mHeight")
+        LogUtil.e("ORIENTATION ", "${getImageOrientation(context, mImageUri)}")
 
         if (getImageSizeRatio() == 1f) {// height is equals to width
             rectF.set(0f, 0f, mWidth, mHeight)
+
+        } else if (rawImageWidth == mWidth) {
+            rectF.set(0f, 0f - 420, mWidth, mWidth + 420)
+
 
         } else if (getImageSizeRatio() > 1f) {
             //si la imagen es *horizontal* y el ancho es mayor que el alto
@@ -392,7 +402,7 @@ class ImageCropperView : View {
         LogUtil.e("hola3  ", "$hola3")
         LogUtil.e("hola4 ", "$hola4")
 
-        rectF.set(hola1.toFloat(), hola2.toFloat(), hola3.toFloat(), hola4.toFloat())
+        rectF.set(0f, 0f - hola3.toFloat(), hola3.toFloat(), hola4.toFloat())
         invalidate()
 
         hola2 -= 10
@@ -424,6 +434,24 @@ class ImageCropperView : View {
      */
     private fun getImageSizeRatio() = rawImageWidth / rawImageHeight
 
+
+    /**
+     * @return 0, 90, 180 or 270. 0 could be returned if there is no data about rotation
+     */
+    fun getImageOrientation(context: Context, imageUri: Uri): Int {
+        return getRotationFromMediaStore(context, imageUri)
+    }
+
+    //TODO validar quizas solo es para android nougat
+    fun getRotationFromMediaStore(context: Context, imageUri: Uri): Int {
+        val columns = arrayOf(MediaStore.Images.Media.DATA, MediaStore.Images.Media.ORIENTATION)
+        val cursor = context.contentResolver.query(imageUri, columns, null, null, null) ?: return 0
+
+        cursor.moveToFirst()
+
+        val orientationColumnIndex = cursor.getColumnIndex(columns[1])
+        return cursor.getInt(orientationColumnIndex)
+    }
 }
 
 
