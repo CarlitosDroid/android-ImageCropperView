@@ -7,6 +7,7 @@ import android.graphics.Canvas
 import android.graphics.RectF
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.media.ExifInterface
 import android.net.Uri
 import android.os.AsyncTask
 import android.provider.MediaStore
@@ -15,9 +16,9 @@ import android.util.Log
 import android.view.GestureDetector
 import android.view.View
 import android.widget.Toast
-import android.media.ExifInterface
-import java.io.File
-import java.io.IOException
+import android.os.Build
+import android.support.annotation.RequiresApi
+import java.io.*
 
 
 /**
@@ -368,7 +369,7 @@ class ImageCropperView : View {
         LogUtil.e("CURRENT RATIO ", "${getImageSizeRatio()}")
         LogUtil.e("ANCHO VISTA ", "${mWidth}")
         LogUtil.e("ALTO VISTA", "$mHeight")
-        LogUtil.e("ORIENTATION ", "${getImageOrientation(context, mImageUri)}")
+        getExifInterfaceFromUri(context, mImageUri)
 
         if (getImageSizeRatio() == 1f) {// height is equals to width
             rectF.set(0f, 0f, mWidth, mHeight)
@@ -451,6 +452,40 @@ class ImageCropperView : View {
 
         val orientationColumnIndex = cursor.getColumnIndex(columns[1])
         return cursor.getInt(orientationColumnIndex)
+    }
+
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    private fun getExifInterfaceFromUri(context: Context, uri: Uri) {
+        val inputStream = context.contentResolver.openInputStream(uri)
+
+        try {
+
+            val exifInterface = ExifInterface(inputStream)
+
+            val message = "ORIENTATION ${getOrientation(exifInterface)}"
+
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        } catch (ioException: IOException) {
+
+        }
+    }
+
+    private fun getOrientation(exifInterface: ExifInterface): Int {
+        val orientation = exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+
+        return when (orientation) {
+            ExifInterface.ORIENTATION_ROTATE_90 ->
+                90
+
+            ExifInterface.ORIENTATION_ROTATE_180 ->
+                180
+
+            ExifInterface.ORIENTATION_ROTATE_270 ->
+                270
+
+            else -> 0
+        }
     }
 }
 
