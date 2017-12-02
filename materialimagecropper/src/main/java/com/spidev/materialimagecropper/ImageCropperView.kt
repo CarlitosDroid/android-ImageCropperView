@@ -309,7 +309,7 @@ class ImageCropperView : View {
         //mDrawable.bounds = rectF
         mDrawable?.setBounds(rectF.left.toInt(), rectF.top.toInt(), rectF.right.toInt(), rectF.bottom.toInt())
         mDrawable?.draw(canvas)
-        gridDrawable.draw(canvas)
+        //gridDrawable.draw(canvas)
     }
 
     /**
@@ -373,23 +373,20 @@ class ImageCropperView : View {
 
         Toast.makeText(context, "ORIENTATION " + ImagesUtil.getImageOrientation(context, mImageUri), Toast.LENGTH_LONG).show()
         when (ImagesUtil.getImageOrientation(context, mImageUri)) {
-
             0 -> {
 
-                if (mHeight > rawImageHeight) {
-                    val scale = mHeight / rawImageHeight
+                val scale = mHeight / rawImageHeight
 
-                    LogUtil.e("SCALE ", "$scale")
+                LogUtil.e("SCALE ", "$scale")
 
-                    val newImageWidth = rawImageWidth * scale
-                    LogUtil.e("NEW IMAGE WIDTH ", "$newImageWidth")
+                val newImageWidth = rawImageWidth * scale
+                LogUtil.e("NEW IMAGE WIDTH ", "$newImageWidth")
 
-                    val expansion = (newImageWidth - mWidth) / 2
+                val expansion = (newImageWidth - mWidth) / 2
 
-                    LogUtil.e("EXPANSION ", "$expansion")
+                LogUtil.e("EXPANSION ", "$expansion")
 
-                    rectF.set(-expansion, 0f, mWidth + expansion, mHeight)
-                }
+                rectF.set(-expansion, 0f, mWidth + expansion, mHeight)
 
 
 //                Toast.makeText(context, "NORMAL ", Toast.LENGTH_LONG).show()

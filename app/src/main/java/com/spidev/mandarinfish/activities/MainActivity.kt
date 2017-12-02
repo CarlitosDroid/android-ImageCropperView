@@ -115,7 +115,7 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
                 //mInstaCropper.setImageUri(data?.data!!)
                 Log.e("Gallery Image Uri", "data ${data?.data}")
                 galleryImageUri = data?.data
-                imgPhoto.rotation = ImagesUtil.getImageOrientation(applicationContext, galleryImageUri).toFloat()
+                //imgPhoto.rotation = ImagesUtil.getImageOrientation(applicationContext, galleryImageUri).toFloat()
                 imgPhoto.setImageURI(data?.data)
             } else if (resultCode == Activity.RESULT_CANCELED) {
 
