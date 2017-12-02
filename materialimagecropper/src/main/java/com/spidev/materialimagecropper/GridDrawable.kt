@@ -12,7 +12,7 @@ import android.view.animation.LinearInterpolator
 class GridDrawable : Drawable() {
 
     // Class name for log
-    private val TAG = GridDrawable::class.java.name
+    private val TAG = GridDrawable::class.java.simpleName
 
     //Values for animations
     private val TIME_BEFORE_FADE: Long = 300
@@ -68,14 +68,14 @@ class GridDrawable : Drawable() {
 
         val width = bounds.width()
         val height = bounds.height()
-        LogUtil.e(TAG, "width  $width")
-        LogUtil.e(TAG, "height  $height")
+        //LogUtil.e(TAG, "width  $width")
+        //LogUtil.e(TAG, "height  $height")
         //Basically bounds.left, bounds.right, bounds.top, bounds.bottom are the coordinates
 
         val thirdOfTheWidth = width / 3
         val thirdOfTheHeight = height / 3
-        LogUtil.e(TAG, "thirdOfTheWidth  $thirdOfTheWidth")
-        LogUtil.e(TAG, "thirdOfTheHeight  $thirdOfTheHeight")
+        //LogUtil.e(TAG, "thirdOfTheWidth  $thirdOfTheWidth")
+        //LogUtil.e(TAG, "thirdOfTheHeight  $thirdOfTheHeight")
         //Drawing borders of the first vertical line
         canvas?.drawLine(thirdOfTheWidth.toFloat() - LINE_STROKE_WIDTH / 2, 0f, thirdOfTheWidth.toFloat() - LINE_STROKE_WIDTH / 2, height.toFloat(), mLineBorderPaint)
         canvas?.drawLine(thirdOfTheWidth.toFloat() + LINE_STROKE_WIDTH / 2, 0f, thirdOfTheWidth.toFloat() + LINE_STROKE_WIDTH / 2, height.toFloat(), mLineBorderPaint)

@@ -366,12 +366,45 @@ class ImageCropperView : View {
         //      =====
         LogUtil.e("RAW IMAGE WIDTH ", "$rawImageWidth")
         LogUtil.e("RAW IMAGE HEIGHT  ", "$rawImageHeight")
-        LogUtil.e("CURRENT RATIO ", "${getImageSizeRatio()}")
+        //LogUtil.e("CURRENT RATIO ", "${getImageSizeRatio()}")
         LogUtil.e("ANCHO VISTA ", "${mWidth}")
         LogUtil.e("ALTO VISTA", "$mHeight")
-        getExifInterfaceFromUri(context, mImageUri)
 
-        if (getImageSizeRatio() == 1f) {// height is equals to width
+
+        Toast.makeText(context, "ORIENTATION " + ImagesUtil.getImageOrientation(context, mImageUri), Toast.LENGTH_LONG).show()
+        when (ImagesUtil.getImageOrientation(context, mImageUri)) {
+
+            0 -> {
+
+                if (mHeight > rawImageHeight) {
+                    val scale = mHeight / rawImageHeight
+
+                    LogUtil.e("SCALE ", "$scale")
+
+                    val newImageWidth = rawImageWidth * scale
+                    LogUtil.e("NEW IMAGE WIDTH ", "$newImageWidth")
+
+                    val expansion = (newImageWidth - mWidth) / 2
+
+                    LogUtil.e("EXPANSION ", "$expansion")
+
+                    rectF.set(-expansion, 0f, mWidth + expansion, mHeight)
+                }
+
+
+//                Toast.makeText(context, "NORMAL ", Toast.LENGTH_LONG).show()
+//
+//                val k = mHeight / 3
+//                val newWidth = k * 4
+//
+//                if (getImageSizeRatio() > 1f) {
+//                    rectF.set(-270f, 0f, mWidth + 270f, mHeight)
+//                }
+            }
+        }
+
+
+        /*if (getImageSizeRatio() == 1f) {// height is equals to width
             rectF.set(0f, 0f, mWidth, mHeight)
 
         } else if (rawImageWidth == mWidth) {
@@ -393,7 +426,7 @@ class ImageCropperView : View {
             rectF.set(0f, 0f - ((rawImageWidth - mWidth) / 2), mWidth, mHeight + ((rawImageWidth - mWidth) / 2))
         } else if (getImageSizeRatio() < (0.6f) || ((0.8f) < getImageSizeRatio() && getImageSizeRatio() < 1f)) { // height is bigger then width
             rectF.set(0f, 0f - ((rawImageHeight - mWidth) / 2), mWidth, mHeight + ((rawImageHeight - mWidth) / 2))
-        }
+        }*/
     }
 
     fun veamos() {
@@ -454,39 +487,6 @@ class ImageCropperView : View {
         return cursor.getInt(orientationColumnIndex)
     }
 
-
-    @RequiresApi(Build.VERSION_CODES.N)
-    private fun getExifInterfaceFromUri(context: Context, uri: Uri) {
-        val inputStream = context.contentResolver.openInputStream(uri)
-
-        try {
-
-            val exifInterface = ExifInterface(inputStream)
-
-            val message = "ORIENTATION ${getOrientation(exifInterface)}"
-
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-        } catch (ioException: IOException) {
-
-        }
-    }
-
-    private fun getOrientation(exifInterface: ExifInterface): Int {
-        val orientation = exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
-
-        return when (orientation) {
-            ExifInterface.ORIENTATION_ROTATE_90 ->
-                90
-
-            ExifInterface.ORIENTATION_ROTATE_180 ->
-                180
-
-            ExifInterface.ORIENTATION_ROTATE_270 ->
-                270
-
-            else -> 0
-        }
-    }
 }
 
 

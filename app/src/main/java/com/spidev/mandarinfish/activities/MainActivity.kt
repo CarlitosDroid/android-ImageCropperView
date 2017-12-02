@@ -28,6 +28,7 @@ import com.spidev.mandarinfish.BuildConfig
 import com.spidev.mandarinfish.R
 import com.spidev.mandarinfish.commons.Constants
 import com.spidev.mandarinfish.fragments.CameraDialogFragment
+import com.spidev.materialimagecropper.ImagesUtil
 import kotlinx.android.synthetic.main.content_main.*
 import java.io.IOException
 
@@ -114,6 +115,7 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
                 //mInstaCropper.setImageUri(data?.data!!)
                 Log.e("Gallery Image Uri", "data ${data?.data}")
                 galleryImageUri = data?.data
+                imgPhoto.rotation = ImagesUtil.getImageOrientation(applicationContext, galleryImageUri).toFloat()
                 imgPhoto.setImageURI(data?.data)
             } else if (resultCode == Activity.RESULT_CANCELED) {
 
