@@ -270,8 +270,8 @@ class ImageCropperView : View {
         LogUtil.e("onLayout-top", top.toString())
 
         //Calculating width and height of the view
-        mWidth = right.toFloat() - left.toFloat()
-        mHeight = bottom.toFloat() - top.toFloat()
+        mHeight = right.toFloat() - left.toFloat()
+        mWidth = bottom.toFloat() - top.toFloat()
 
         LogUtil.e("onLayout-mWidth", mWidth.toString())
         LogUtil.e("onLayout-mHeight", mHeight.toString())
@@ -366,39 +366,54 @@ class ImageCropperView : View {
         //      =====
         LogUtil.e("RAW IMAGE WIDTH ", "$rawImageWidth")
         LogUtil.e("RAW IMAGE HEIGHT  ", "$rawImageHeight")
-        //LogUtil.e("CURRENT RATIO ", "${getImageSizeRatio()}")
+        LogUtil.e("CURRENT RATIO ", "${getImageSizeRatio()}")
         LogUtil.e("ANCHO VISTA ", "${mWidth}")
         LogUtil.e("ALTO VISTA", "$mHeight")
 
 
         Toast.makeText(context, "ORIENTATION " + ImagesUtil.getImageOrientation(context, mImageUri), Toast.LENGTH_LONG).show()
-        when (ImagesUtil.getImageOrientation(context, mImageUri)) {
-            0 -> {
-
-                val scale = mHeight / rawImageHeight
-
-                LogUtil.e("SCALE ", "$scale")
-
-                val newImageWidth = rawImageWidth * scale
-                LogUtil.e("NEW IMAGE WIDTH ", "$newImageWidth")
-
-                val expansion = (newImageWidth - mWidth) / 2
-
-                LogUtil.e("EXPANSION ", "$expansion")
-
-                rectF.set(-expansion, 0f, mWidth + expansion, mHeight)
 
 
-//                Toast.makeText(context, "NORMAL ", Toast.LENGTH_LONG).show()
-//
-//                val k = mHeight / 3
-//                val newWidth = k * 4
-//
-//                if (getImageSizeRatio() > 1f) {
-//                    rectF.set(-270f, 0f, mWidth + 270f, mHeight)
-//                }
-            }
+        //ORIENTATION 0
+        if (getImageSizeRatio() >= 1f) { //The smallest side of the image is rawImageWidth
+            val scale = getScale(mWidth, rawImageWidth)
+
+            val newImageWidth = rawImageWidth * scale
+
+            val expansion = (newImageWidth - mWidth) / 2
+
+            rectF.set(-expansion, 0f, mWidth + expansion, mHeight)
+
+        } else {//The smallest side of the image is rawImageHeight
+            val scale = getScale(mHeight, rawImageHeight)
+
+            val newImageWidth = rawImageWidth * scale
+
+            val expansion = (newImageWidth - mWidth) / 2
+
+            rectF.set(-expansion, 0f, mWidth + expansion, mHeight)
+
         }
+
+
+//        when (ImagesUtil.getImageOrientation(context, mImageUri)) {
+//            0 -> {
+//
+//                val scale = mHeight / rawImageHeight
+//
+//                LogUtil.e("SCALE ", "$scale")
+//
+//                val newImageWidth = rawImageWidth * scale
+//                LogUtil.e("NEW IMAGE WIDTH ", "$newImageWidth")
+//
+//                val expansion = (newImageWidth - mWidth) / 2
+//
+//                LogUtil.e("EXPANSION ", "$expansion")
+//
+//                rectF.set(-expansion, 0f, mWidth + expansion, mHeight)
+//
+//            }
+//        }
 
 
         /*if (getImageSizeRatio() == 1f) {// height is equals to width
@@ -461,10 +476,12 @@ class ImageCropperView : View {
     /**
      * Get the ratio of the image's size, the ratio is basically the relation
      * between the width and the height of the view, width:height -> k
-     * for example: 4:5 -> 0.8, 2:10 -> 0.2, 1:1 -> 1
+     * for example: 4:3 -> 0.8, 16:9 -> 0.2, 1:1 -> 1
      */
-    private fun getImageSizeRatio() = rawImageWidth / rawImageHeight
+    private fun getImageSizeRatio() = rawImageHeight / rawImageWidth
 
+
+    private fun getScale(smallestSideOfView: Float, smallestSideOfImage: Float) = smallestSideOfView / smallestSideOfImage
 
     /**
      * @return 0, 90, 180 or 270. 0 could be returned if there is no data about rotation
