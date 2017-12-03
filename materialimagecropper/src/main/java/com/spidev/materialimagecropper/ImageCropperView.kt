@@ -1,13 +1,11 @@
 package com.spidev.materialimagecropper
 
 import android.content.Context
-import android.database.Cursor
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.RectF
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import android.media.ExifInterface
 import android.net.Uri
 import android.os.AsyncTask
 import android.provider.MediaStore
@@ -16,10 +14,8 @@ import android.util.Log
 import android.view.GestureDetector
 import android.view.View
 import android.widget.Toast
-import android.os.Build
-import android.support.annotation.RequiresApi
-import java.io.*
-
+import android.support.media.ExifInterface.ORIENTATION_NORMAL
+import android.support.media.ExifInterface.ORIENTATION_ROTATE_90
 
 /**
  * Created by Carlos Leonardo Camilo Vargas Huamán on 8/13/17.
@@ -356,89 +352,49 @@ class ImageCropperView : View {
 
     private fun setCoordinatesToRectangleAndGetTheDrawableScale() {
 
-        // Si la relacion o ratio entre el ancho y alto, es mas pequeño que el minimo 0.8f
-        // significa que tenemos una vista con un ancho mucho mas pequeño que el alto
-        //      =====
-        //      =   =               =============
-        //      =   =               =           =
-        //  if  =   =      else     =           =
-        //      =   =               =============
-        //      =====
         LogUtil.e("RAW IMAGE WIDTH ", "$rawImageWidth")
         LogUtil.e("RAW IMAGE HEIGHT  ", "$rawImageHeight")
         LogUtil.e("CURRENT RATIO ", "${getImageSizeRatio()}")
         LogUtil.e("ANCHO VISTA ", "${mWidth}")
         LogUtil.e("ALTO VISTA", "$mHeight")
 
-
         Toast.makeText(context, "ORIENTATION " + ImagesUtil.getImageOrientation(context, mImageUri), Toast.LENGTH_LONG).show()
 
+        //ONLY IN PORTRAIT- PORQUE SI LO PONEMOS LANDSCAPE TENDRAS UN CUADRADO QUE NO SE VERA EN LA PANTALLA
+        when (ImagesUtil.getImageOrientation(context, mImageUri)) {
+            ORIENTATION_NORMAL -> {
+                var scale = 1f
+                //ORIENTATION 0
+                if (getImageSizeRatio() >= 1f) { //The smallest side of the image is rawImageWidth
+                    Toast.makeText(context, ">= 1 ", Toast.LENGTH_LONG).show()
 
-        //ORIENTATION 0
-        if (getImageSizeRatio() >= 1f) { //The smallest side of the image is rawImageWidth
-            val scale = getScale(mWidth, rawImageWidth)
+                    scale = getScale(mHeight, rawImageWidth)
 
-            val newImageWidth = rawImageWidth * scale
+                    val newImageHeight = rawImageHeight * scale
 
-            val expansion = (newImageWidth - mWidth) / 2
+                    val expansion = (newImageHeight - mHeight) / 2
 
-            rectF.set(-expansion, 0f, mWidth + expansion, mHeight)
+                    rectF.set(0f, -expansion, mWidth, mHeight + expansion)
 
-        } else {//The smallest side of the image is rawImageHeight
-            val scale = getScale(mHeight, rawImageHeight)
+                } else if (getImageSizeRatio() == 1f) { //The rawImageWidth and rawImageHeight are equals
+                    rectF.set(0f, 0f, mWidth, mHeight)
+                } else {//The smallest side of the image is rawImageHeight
+                    Toast.makeText(context, "< 1 ", Toast.LENGTH_LONG).show()
 
-            val newImageWidth = rawImageWidth * scale
+                    scale = getScale(mHeight, rawImageHeight)
 
-            val expansion = (newImageWidth - mWidth) / 2
+                    val newImageWidth = rawImageWidth * scale
 
-            rectF.set(-expansion, 0f, mWidth + expansion, mHeight)
+                    val expansion = (newImageWidth - mWidth) / 2
 
+                    rectF.set(-expansion, 0f, mWidth + expansion, mHeight)
+                }
+            }
+
+            ORIENTATION_ROTATE_90 -> {
+
+            }
         }
-
-
-//        when (ImagesUtil.getImageOrientation(context, mImageUri)) {
-//            0 -> {
-//
-//                val scale = mHeight / rawImageHeight
-//
-//                LogUtil.e("SCALE ", "$scale")
-//
-//                val newImageWidth = rawImageWidth * scale
-//                LogUtil.e("NEW IMAGE WIDTH ", "$newImageWidth")
-//
-//                val expansion = (newImageWidth - mWidth) / 2
-//
-//                LogUtil.e("EXPANSION ", "$expansion")
-//
-//                rectF.set(-expansion, 0f, mWidth + expansion, mHeight)
-//
-//            }
-//        }
-
-
-        /*if (getImageSizeRatio() == 1f) {// height is equals to width
-            rectF.set(0f, 0f, mWidth, mHeight)
-
-        } else if (rawImageWidth == mWidth) {
-            rectF.set(0f, 0f - 420, mWidth, mWidth + 420)
-
-
-        } else if (getImageSizeRatio() > 1f) {
-            //si la imagen es *horizontal* y el ancho es mayor que el alto
-            val x1 = (rawImageWidth - mWidth) / 2
-            LogUtil.e("X1  ", "${-x1}")
-
-            //4032x2268, 1920x1080 -> ratio -> 1.7777777778, 1.7777777778
-            //rectF.set(-420f, 0f, mWidth + 420f, mHeight)
-
-            //2880x2160 -> ratio -> 1.333333333
-            rectF.set(-180f, 0f, mWidth + 180f, mHeight)
-        } else if ((0.6f < getImageSizeRatio() && getImageSizeRatio() < 0.8f)) {
-            //si la imagen es *horizontal* y el ancho es mayor que el alto
-            rectF.set(0f, 0f - ((rawImageWidth - mWidth) / 2), mWidth, mHeight + ((rawImageWidth - mWidth) / 2))
-        } else if (getImageSizeRatio() < (0.6f) || ((0.8f) < getImageSizeRatio() && getImageSizeRatio() < 1f)) { // height is bigger then width
-            rectF.set(0f, 0f - ((rawImageHeight - mWidth) / 2), mWidth, mHeight + ((rawImageHeight - mWidth) / 2))
-        }*/
     }
 
     fun veamos() {
