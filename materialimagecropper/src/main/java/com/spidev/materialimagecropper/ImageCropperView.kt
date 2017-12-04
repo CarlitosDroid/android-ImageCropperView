@@ -1,21 +1,18 @@
 package com.spidev.materialimagecropper
 
 import android.content.Context
-import android.graphics.BitmapFactory
-import android.graphics.Canvas
-import android.graphics.RectF
+import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.AsyncTask
 import android.provider.MediaStore
+import android.support.media.ExifInterface.*
 import android.util.AttributeSet
 import android.util.Log
 import android.view.GestureDetector
 import android.view.View
 import android.widget.Toast
-import android.support.media.ExifInterface.ORIENTATION_NORMAL
-import android.support.media.ExifInterface.ORIENTATION_ROTATE_90
 
 /**
  * Created by Carlos Leonardo Camilo Vargas Huamán on 8/13/17.
@@ -327,13 +324,31 @@ class ImageCropperView : View {
             BitmapFactory.decodeStream(context.contentResolver!!.openInputStream(uri),
                     null, options)
 
-            rawImageWidth = options.outWidth.toFloat()
-            rawImageHeight = options.outHeight.toFloat()
+            when (ImagesUtil.getImageOrientation(context, mImageUri)) {
+                ORIENTATION_NORMAL, ORIENTATION_ROTATE_180 -> {
+                    rawImageWidth = options.outWidth.toFloat()
+                    rawImageHeight = options.outHeight.toFloat()
+                }
+                ORIENTATION_ROTATE_90, ORIENTATION_ROTATE_270 -> {
+                    rawImageWidth = options.outHeight.toFloat()
+                    rawImageHeight = options.outWidth.toFloat()
+                }
+                else -> {
+                    rawImageWidth = options.outWidth.toFloat()
+                    rawImageHeight = options.outHeight.toFloat()
+                }
+            }
 
             val bitmapp = MediaStore.Images.Media.getBitmap(context?.contentResolver, uri)
 
-            Log.e("IN BACKGROUND", "IN BACKGROIUND  $bitmapp")
-            return BitmapDrawable(context.resources, bitmapp)
+            val matrix = Matrix()
+            matrix.postRotate(ImagesUtil.getImageRotation(context, mImageUri).toFloat())
+
+            val newBitmap = Bitmap.createBitmap(bitmapp, 0, 0, bitmapp.width, bitmapp.height, matrix, false)
+
+
+            Log.e("IN BACKGROUND", "IN BACKGROIUND  $newBitmap")
+            return BitmapDrawable(context.resources, newBitmap)
         }
 
         override fun onPostExecute(result: Drawable?) {
@@ -361,55 +376,48 @@ class ImageCropperView : View {
         Toast.makeText(context, "ORIENTATION " + ImagesUtil.getImageOrientation(context, mImageUri), Toast.LENGTH_LONG).show()
 
         //ONLY IN PORTRAIT- PORQUE SI LO PONEMOS LANDSCAPE TENDRAS UN CUADRADO QUE NO SE VERA EN LA PANTALLA
-        when (ImagesUtil.getImageOrientation(context, mImageUri)) {
-            ORIENTATION_NORMAL -> {
-                var scale = 1f
-                //ORIENTATION 0
-                if (getImageSizeRatio() >= 1f) { //The smallest side of the image is rawImageWidth
-                    Toast.makeText(context, ">= 1 ", Toast.LENGTH_LONG).show()
+        //when (ImagesUtil.getImageOrientation(context, mImageUri)) {
+//            ORIENTATION_NORMAL -> {
+        var scale = 1f
+        //ORIENTATION 0
+        if (getImageSizeRatio() >= 1f) { //The smallest side of the image is rawImageWidth
+            Toast.makeText(context, ">= 1 ", Toast.LENGTH_LONG).show()
 
-                    scale = getScale(mHeight, rawImageWidth)
+            scale = getScale(mHeight, rawImageWidth)
 
-                    val newImageHeight = rawImageHeight * scale
+            val newImageHeight = rawImageHeight * scale
 
-                    val expansion = (newImageHeight - mHeight) / 2
+            val expansion = (newImageHeight - mHeight) / 2
 
-                    rectF.set(0f, -expansion, mWidth, mHeight + expansion)
+            rectF.set(0f, -expansion, mWidth, mHeight + expansion)
 
-                } else if (getImageSizeRatio() == 1f) { //The rawImageWidth and rawImageHeight are equals
-                    rectF.set(0f, 0f, mWidth, mHeight)
-                } else {//The smallest side of the image is rawImageHeight
-                    Toast.makeText(context, "< 1 ", Toast.LENGTH_LONG).show()
+        } else if (getImageSizeRatio() == 1f) { //The rawImageWidth and rawImageHeight are equals
+            rectF.set(0f, 0f, mWidth, mHeight)
+        } else {//The smallest side of the image is rawImageHeight
+            Toast.makeText(context, "< 1 ", Toast.LENGTH_LONG).show()
 
-                    scale = getScale(mHeight, rawImageHeight)
+            scale = getScale(mHeight, rawImageHeight)
 
-                    val newImageWidth = rawImageWidth * scale
+            val newImageWidth = rawImageWidth * scale
 
-                    val expansion = (newImageWidth - mWidth) / 2
+            val expansion = (newImageWidth - mWidth) / 2
 
-                    rectF.set(-expansion, 0f, mWidth + expansion, mHeight)
-                }
-            }
-
-            ORIENTATION_ROTATE_90 -> {
-
-            }
+            rectF.set(-expansion, 0f, mWidth + expansion, mHeight)
         }
-    }
+//            }
 
-    fun veamos() {
-
-        LogUtil.e("hola1  ", "$hola1")
-        LogUtil.e("hola2 ", "$hola2")
-        LogUtil.e("hola3  ", "$hola3")
-        LogUtil.e("hola4 ", "$hola4")
-
-        rectF.set(0f, 0f - hola3.toFloat(), hola3.toFloat(), hola4.toFloat())
-        invalidate()
-
-        hola2 -= 10
-        hola4 += 10
-
+//            ORIENTATION_ROTATE_90 -> {
+//
+//                val scale = getScale(mHeight, rawImageHeight)
+//
+//                val newImageWidth = rawImageWidth * scale
+//
+//                val expansion = (newImageWidth - mWidth) / 2
+//
+//                rectF.set(0f, -expansion, mWidth, mHeight + expansion)
+//
+//            }
+        //}
     }
 
     fun updateGridDrawable() {

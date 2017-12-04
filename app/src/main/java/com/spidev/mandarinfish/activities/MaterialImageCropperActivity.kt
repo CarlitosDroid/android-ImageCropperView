@@ -21,7 +21,7 @@ class MaterialImageCropperActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         fab.setOnClickListener { view ->
-            micPicture.veamos()
+
         }
 
         val sourceUri = intent.data

@@ -3,8 +3,6 @@ package com.spidev.materialimagecropper
 import android.content.Context
 import android.support.media.ExifInterface
 import android.net.Uri
-import android.os.Build
-import android.support.annotation.RequiresApi
 import java.io.IOException
 
 /**
@@ -25,7 +23,6 @@ class ImagesUtil {
         }
 
         fun getImageRotation(context: Context, uri: Uri?): Int {
-            val inputStream = context.contentResolver.openInputStream(uri)
             try {
                 val orientation = getImageOrientation(context, uri)
                 return when (orientation) {
