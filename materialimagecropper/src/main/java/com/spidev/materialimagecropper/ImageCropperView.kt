@@ -33,11 +33,6 @@ class ImageCropperView : View {
     private var gridDrawable = GridDrawable()
     private var mDrawable: Drawable? = null
 
-    private var hola1 = 0
-    private var hola2 = 0
-    private var hola3 = 1080
-    private var hola4 = 1080
-
     /**
      * I dont know
      */
@@ -310,18 +305,23 @@ class ImageCropperView : View {
      */
 
     fun startMakingSuitableDrawable() {
-        makeDrawableAsyncTask = MakeDrawableAsyncTask(mImageUri, mWidth.toInt(), mHeight.toInt())
+        makeDrawableAsyncTask = MakeDrawableAsyncTask(mImageUri)
         makeDrawableAsyncTask?.execute()
     }
 
-    inner class MakeDrawableAsyncTask(var uri: Uri, mWidth: Int, mHeight: Int) : AsyncTask<Void, Void, Drawable>() {
+    /**
+     * This AsyncTask class transform a image's uri to a rotated bitmap drawable
+     * @param imageUri The URI of the image
+     * @return A bitmap drawable object, basically a rotated drawable
+     */
+    inner class MakeDrawableAsyncTask(var imageUri: Uri) : AsyncTask<Void, Void, Drawable>() {
 
         override fun doInBackground(vararg params: Void?): Drawable {
             var options = BitmapFactory.Options()
             options.inSampleSize = 1
             options.inJustDecodeBounds = true
 
-            BitmapFactory.decodeStream(context.contentResolver!!.openInputStream(uri),
+            BitmapFactory.decodeStream(context.contentResolver!!.openInputStream(imageUri),
                     null, options)
 
             when (ImagesUtil.getImageOrientation(context, mImageUri)) {
@@ -339,16 +339,14 @@ class ImageCropperView : View {
                 }
             }
 
-            val bitmapp = MediaStore.Images.Media.getBitmap(context?.contentResolver, uri)
+            val bitmap = MediaStore.Images.Media.getBitmap(context?.contentResolver, imageUri)
 
             val matrix = Matrix()
             matrix.postRotate(ImagesUtil.getImageRotation(context, mImageUri).toFloat())
 
-            val newBitmap = Bitmap.createBitmap(bitmapp, 0, 0, bitmapp.width, bitmapp.height, matrix, false)
+            val rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, false)
 
-
-            Log.e("IN BACKGROUND", "IN BACKGROIUND  $newBitmap")
-            return BitmapDrawable(context.resources, newBitmap)
+            return BitmapDrawable(context.resources, rotatedBitmap)
         }
 
         override fun onPostExecute(result: Drawable?) {
@@ -376,10 +374,7 @@ class ImageCropperView : View {
         Toast.makeText(context, "ORIENTATION " + ImagesUtil.getImageOrientation(context, mImageUri), Toast.LENGTH_LONG).show()
 
         //ONLY IN PORTRAIT- PORQUE SI LO PONEMOS LANDSCAPE TENDRAS UN CUADRADO QUE NO SE VERA EN LA PANTALLA
-        //when (ImagesUtil.getImageOrientation(context, mImageUri)) {
-//            ORIENTATION_NORMAL -> {
         var scale = 1f
-        //ORIENTATION 0
         if (getImageSizeRatio() >= 1f) { //The smallest side of the image is rawImageWidth
             Toast.makeText(context, ">= 1 ", Toast.LENGTH_LONG).show()
 
@@ -404,20 +399,6 @@ class ImageCropperView : View {
 
             rectF.set(-expansion, 0f, mWidth + expansion, mHeight)
         }
-//            }
-
-//            ORIENTATION_ROTATE_90 -> {
-//
-//                val scale = getScale(mHeight, rawImageHeight)
-//
-//                val newImageWidth = rawImageWidth * scale
-//
-//                val expansion = (newImageWidth - mWidth) / 2
-//
-//                rectF.set(0f, -expansion, mWidth, mHeight + expansion)
-//
-//            }
-        //}
     }
 
     fun updateGridDrawable() {
