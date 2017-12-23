@@ -1,5 +1,7 @@
 package com.spidev.mandarinfish.activities
 
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.provider.MediaStore
 import android.support.design.widget.Snackbar
@@ -8,21 +10,24 @@ import android.util.Log
 import android.view.View
 import com.spidev.mandarinfish.R
 import com.spidev.mandarinfish.commons.Constants
+import com.squareup.picasso.Picasso
+import com.squareup.picasso.Target
 
 import kotlinx.android.synthetic.main.activity_material_image_cropper.*
 import kotlinx.android.synthetic.main.content_main.*
 import kotlinx.android.synthetic.main.content_material_image_cropper.*
+import kotlinx.android.synthetic.main.content_test.*
 
 class MaterialImageCropperActivity : AppCompatActivity() {
+
+    lateinit var target: Target
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_material_image_cropper)
         setSupportActionBar(toolbar)
 
-        fab.setOnClickListener { view ->
 
-        }
 
         val sourceUri = intent.data
 
@@ -45,11 +50,49 @@ class MaterialImageCropperActivity : AppCompatActivity() {
         Log.e("x-heightSpecification ", "$heightSpecification")
         Log.e("x-quality ", "$quality")
 
-        micPicture.setImageUri(sourceUri)
-        micPicture.crop(widthSpecification, heightSpecification)
+
+
+        //micPicture.crop(widthSpecification, heightSpecification)
 
         //micPicture.setImageUri()
-    }
 
+
+        target = object : Target {
+            override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
+                Log.e("onPrepareLoad", "onPrepareLoad $placeHolderDrawable")
+
+                if(placeHolderDrawable != null){
+
+                }
+                //ivFinal.setImageDrawable(placeHolderDrawable)
+            }
+
+            override fun onBitmapFailed(errorDrawable: Drawable?) {
+                Log.e("onBitmapFailed", "onBitmapFailed errorDrawable")
+            }
+
+            override fun onBitmapLoaded(bitmap: Bitmap, from: Picasso.LoadedFrom?) {
+                Log.e("onBitmapLoaded", "onBitmapLoaded")
+                val width = bitmap.width
+                val height = bitmap.height
+
+                Log.e("onBitmapLoaded1", "$width")
+                Log.e("onBitmapLoaded2", "$height")
+
+                //ivFinal.setImageBitmap(bitmap)
+                micPicture.setImageUri(sourceUri)
+                micPicture.setImageBitmap(bitmap)
+            }
+        }
+
+        micPicture.tag = target
+
+        fab.setOnClickListener { view ->
+            Picasso.with(this)
+                    .load(sourceUri)
+                    .placeholder(R.drawable.ic_photo_blue_700_24dp)
+                    .into(target)
+        }
+    }
 
 }

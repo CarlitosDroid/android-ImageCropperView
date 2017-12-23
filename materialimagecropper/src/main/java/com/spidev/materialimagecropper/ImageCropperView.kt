@@ -1,13 +1,12 @@
 package com.spidev.materialimagecropper
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
-import android.os.AsyncTask
 import android.provider.MediaStore
-import android.support.media.ExifInterface.*
 import android.util.AttributeSet
 import android.util.Log
 import android.view.GestureDetector
@@ -17,11 +16,6 @@ import android.widget.Toast
 /**
  * Created by Carlos Leonardo Camilo Vargas Huamán on 8/13/17.
  */
-
-const val DEFAULT_MINIMUM_RATIO = 4f / 5f
-const val DEFAULT_MAXIMUM_RATIO = 1.91f
-//RATIO VALUE BY DEFAULT TO SPECIFY A SQUARE(1:1)
-const val DEFAULT_RATIO = 1f
 
 class ImageCropperView : View {
 
@@ -34,10 +28,10 @@ class ImageCropperView : View {
     private var mDrawable: Drawable? = null
 
     /**
-     * I dont know
+     * View dimension
      */
-    private var mWidth = 0f
-    private var mHeight = 0f
+    private var viewWidth = 0f
+    private var viewHeight = 0f
 
     /**
      * I dont know
@@ -99,50 +93,15 @@ class ImageCropperView : View {
 
     fun setImageUri(uri: Uri) {
         mImageUri = uri
-
-        invalidate()
     }
 
-    fun setImageUri() {
-        mImageUri = Uri.parse("content://media/external/images/media/22763")
+    fun setImageBitmap(bitmap: Bitmap) {
+        rawImageWidth = bitmap.width.toFloat()
+        rawImageHeight = bitmap.height.toFloat()
 
-        invalidate()
+        mDrawable = BitmapDrawable(context.resources, bitmap)
+        refreshDrawable()
     }
-
-    fun crop(widthSpecification: Int, heightSpecification: Int) {
-
-        if (mImageUri == null) {
-            throw Throwable("Image uri is not set.")
-        }
-
-        val gridBounds = RectF(gridDrawable.bounds)
-
-        val widthMode = MeasureSpec.getMode(widthSpecification)
-        val widthSize = MeasureSpec.getSize(widthSpecification)
-        val heightMode = MeasureSpec.getMode(heightSpecification)
-        val heightSize = MeasureSpec.getSize(heightSpecification)
-
-        when (widthMode) {
-            MeasureSpec.EXACTLY -> {
-
-            }
-            MeasureSpec.AT_MOST -> {
-
-            }
-
-            MeasureSpec.UNSPECIFIED -> {
-
-            }
-        }
-
-        requestLayout()
-    }
-
-//    inner class jaja : AsyncTask<Void, Void, Bitmap>() {
-//        override fun doInBackground(vararg params: Void?): Bitmap {
-//        }
-//
-//    }
 
     /**
      * (1)
@@ -235,7 +194,6 @@ class ImageCropperView : View {
             MeasureSpec.UNSPECIFIED -> {
                 Toast.makeText(context, "UNSPECIFIED", Toast.LENGTH_SHORT).show()
             }
-
         }
 
         Log.e("x-targetWidth", "targetWidth $targetWidth")
@@ -258,12 +216,11 @@ class ImageCropperView : View {
         LogUtil.e("onLayout-top", top.toString())
 
         //Calculating width and height of the view
-        mHeight = right.toFloat() - left.toFloat()
-        mWidth = bottom.toFloat() - top.toFloat()
+        viewHeight = right.toFloat() - left.toFloat()
+        viewWidth = bottom.toFloat() - top.toFloat()
 
-        LogUtil.e("onLayout-mWidth", mWidth.toString())
-        LogUtil.e("onLayout-mHeight", mHeight.toString())
-        startMakingSuitableDrawable()
+        LogUtil.e("onLayout-mWidth", viewWidth.toString())
+        LogUtil.e("onLayout-mHeight", viewHeight.toString())
     }
 
     /**
@@ -273,7 +230,7 @@ class ImageCropperView : View {
      */
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-        Log.e("x-onDraw", "onDraw")
+        LogUtil.e("x-onDraw", "onDraw")
         Log.e("x-mDrawable", "mDrawable $mDrawable")
         Log.e("x-RECF", "RECF ${rectF.left.toInt()}- ${rectF.top.toInt()}- ${rectF.right.toInt()}- ${rectF.bottom.toInt()}")
 
@@ -300,63 +257,6 @@ class ImageCropperView : View {
         //gridDrawable.draw(canvas)
     }
 
-    /**
-     * Setea los dos vertices del rectangulo
-     */
-
-    fun startMakingSuitableDrawable() {
-        makeDrawableAsyncTask = MakeDrawableAsyncTask(mImageUri)
-        makeDrawableAsyncTask?.execute()
-    }
-
-    /**
-     * This AsyncTask class transform a image's uri to a rotated bitmap drawable
-     * @param imageUri The URI of the image
-     * @return A bitmap drawable object, basically a rotated drawable
-     */
-    inner class MakeDrawableAsyncTask(var imageUri: Uri) : AsyncTask<Void, Void, Drawable>() {
-
-        override fun doInBackground(vararg params: Void?): Drawable {
-            var options = BitmapFactory.Options()
-            options.inSampleSize = 1
-            options.inJustDecodeBounds = true
-
-            BitmapFactory.decodeStream(context.contentResolver!!.openInputStream(imageUri),
-                    null, options)
-
-            when (ImagesUtil.getImageOrientation(context, mImageUri)) {
-                ORIENTATION_NORMAL, ORIENTATION_ROTATE_180 -> {
-                    rawImageWidth = options.outWidth.toFloat()
-                    rawImageHeight = options.outHeight.toFloat()
-                }
-                ORIENTATION_ROTATE_90, ORIENTATION_ROTATE_270 -> {
-                    rawImageWidth = options.outHeight.toFloat()
-                    rawImageHeight = options.outWidth.toFloat()
-                }
-                else -> {
-                    rawImageWidth = options.outWidth.toFloat()
-                    rawImageHeight = options.outHeight.toFloat()
-                }
-            }
-
-            val bitmap = MediaStore.Images.Media.getBitmap(context?.contentResolver, imageUri)
-
-            val matrix = Matrix()
-            matrix.postRotate(ImagesUtil.getImageRotation(context, mImageUri).toFloat())
-
-            val rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, false)
-
-            return BitmapDrawable(context.resources, rotatedBitmap)
-        }
-
-        override fun onPostExecute(result: Drawable?) {
-            super.onPostExecute(result)
-            mDrawable = result
-
-            refreshDrawable()
-        }
-    }
-
     private fun refreshDrawable() {
         setCoordinatesToRectangleAndGetTheDrawableScale()
         //updateGridDrawable()
@@ -368,8 +268,8 @@ class ImageCropperView : View {
         LogUtil.e("RAW IMAGE WIDTH ", "$rawImageWidth")
         LogUtil.e("RAW IMAGE HEIGHT  ", "$rawImageHeight")
         LogUtil.e("CURRENT RATIO ", "${getImageSizeRatio()}")
-        LogUtil.e("ANCHO VISTA ", "${mWidth}")
-        LogUtil.e("ALTO VISTA", "$mHeight")
+        LogUtil.e("ANCHO VISTA ", "${viewWidth}")
+        LogUtil.e("ALTO VISTA", "$viewHeight")
 
         Toast.makeText(context, "ORIENTATION " + ImagesUtil.getImageOrientation(context, mImageUri), Toast.LENGTH_LONG).show()
 
@@ -378,26 +278,26 @@ class ImageCropperView : View {
         if (getImageSizeRatio() >= 1f) { //The smallest side of the image is rawImageWidth
             Toast.makeText(context, ">= 1 ", Toast.LENGTH_LONG).show()
 
-            scale = getScale(mHeight, rawImageWidth)
+            scale = getScale(viewHeight, rawImageWidth)
 
             val newImageHeight = rawImageHeight * scale
 
-            val expansion = (newImageHeight - mHeight) / 2
+            val expansion = (newImageHeight - viewHeight) / 2
 
-            rectF.set(0f, -expansion, mWidth, mHeight + expansion)
+            rectF.set(0f, -expansion, viewWidth, viewHeight + expansion)
 
         } else if (getImageSizeRatio() == 1f) { //The rawImageWidth and rawImageHeight are equals
-            rectF.set(0f, 0f, mWidth, mHeight)
+            rectF.set(0f, 0f, viewWidth, viewHeight)
         } else {//The smallest side of the image is rawImageHeight
             Toast.makeText(context, "< 1 ", Toast.LENGTH_LONG).show()
 
-            scale = getScale(mHeight, rawImageHeight)
+            scale = getScale(viewHeight, rawImageHeight)
 
             val newImageWidth = rawImageWidth * scale
 
-            val expansion = (newImageWidth - mWidth) / 2
+            val expansion = (newImageWidth - viewWidth) / 2
 
-            rectF.set(-expansion, 0f, mWidth + expansion, mHeight)
+            rectF.set(-expansion, 0f, viewWidth + expansion, viewHeight)
         }
     }
 
@@ -446,6 +346,12 @@ class ImageCropperView : View {
         return cursor.getInt(orientationColumnIndex)
     }
 
+    companion object {
+        const val DEFAULT_MINIMUM_RATIO = 4f / 5f
+        const val DEFAULT_MAXIMUM_RATIO = 1.91f
+        //RATIO VALUE BY DEFAULT TO SPECIFY A SQUARE(1:1)
+        const val DEFAULT_RATIO = 1f
+    }
 }
 
 
