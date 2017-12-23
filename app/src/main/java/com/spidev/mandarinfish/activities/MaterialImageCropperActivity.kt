@@ -10,6 +10,7 @@ import android.util.Log
 import android.view.View
 import com.spidev.mandarinfish.R
 import com.spidev.mandarinfish.commons.Constants
+import com.spidev.mandarinfish.util.ImagesUtil
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.Target
 
@@ -26,7 +27,6 @@ class MaterialImageCropperActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_material_image_cropper)
         setSupportActionBar(toolbar)
-
 
 
         val sourceUri = intent.data
@@ -51,7 +51,6 @@ class MaterialImageCropperActivity : AppCompatActivity() {
         Log.e("x-quality ", "$quality")
 
 
-
         //micPicture.crop(widthSpecification, heightSpecification)
 
         //micPicture.setImageUri()
@@ -61,7 +60,7 @@ class MaterialImageCropperActivity : AppCompatActivity() {
             override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
                 Log.e("onPrepareLoad", "onPrepareLoad $placeHolderDrawable")
 
-                if(placeHolderDrawable != null){
+                if (placeHolderDrawable != null) {
 
                 }
                 //ivFinal.setImageDrawable(placeHolderDrawable)
@@ -92,6 +91,10 @@ class MaterialImageCropperActivity : AppCompatActivity() {
                     .load(sourceUri)
                     .placeholder(R.drawable.ic_photo_blue_700_24dp)
                     .into(target)
+        }
+
+        fabShowExifData.setOnClickListener { _ ->
+            ImagesUtil.showExifTag(this, sourceUri)
         }
     }
 

@@ -28,7 +28,6 @@ import com.spidev.mandarinfish.BuildConfig
 import com.spidev.mandarinfish.R
 import com.spidev.mandarinfish.commons.Constants
 import com.spidev.mandarinfish.fragments.CameraDialogFragment
-import com.spidev.materialimagecropper.ImagesUtil
 import kotlinx.android.synthetic.main.content_main.*
 import java.io.IOException
 

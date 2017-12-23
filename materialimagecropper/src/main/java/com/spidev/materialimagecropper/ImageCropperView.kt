@@ -98,7 +98,6 @@ class ImageCropperView : View {
     fun setImageBitmap(bitmap: Bitmap) {
         rawImageWidth = bitmap.width.toFloat()
         rawImageHeight = bitmap.height.toFloat()
-
         mDrawable = BitmapDrawable(context.resources, bitmap)
         refreshDrawable()
     }
@@ -271,24 +270,8 @@ class ImageCropperView : View {
         LogUtil.e("ANCHO VISTA ", "${viewWidth}")
         LogUtil.e("ALTO VISTA", "$viewHeight")
 
-        Toast.makeText(context, "ORIENTATION " + ImagesUtil.getImageOrientation(context, mImageUri), Toast.LENGTH_LONG).show()
-
-        //ONLY IN PORTRAIT- PORQUE SI LO PONEMOS LANDSCAPE TENDRAS UN CUADRADO QUE NO SE VERA EN LA PANTALLA
         var scale = 1f
-        if (getImageSizeRatio() >= 1f) { //The smallest side of the image is rawImageWidth
-            Toast.makeText(context, ">= 1 ", Toast.LENGTH_LONG).show()
-
-            scale = getScale(viewHeight, rawImageWidth)
-
-            val newImageHeight = rawImageHeight * scale
-
-            val expansion = (newImageHeight - viewHeight) / 2
-
-            rectF.set(0f, -expansion, viewWidth, viewHeight + expansion)
-
-        } else if (getImageSizeRatio() == 1f) { //The rawImageWidth and rawImageHeight are equals
-            rectF.set(0f, 0f, viewWidth, viewHeight)
-        } else {//The smallest side of the image is rawImageHeight
+        if (getImageSizeRatio() >= 1f) { //The smallest side of the image is rawImageHeight
             Toast.makeText(context, "< 1 ", Toast.LENGTH_LONG).show()
 
             scale = getScale(viewHeight, rawImageHeight)
@@ -298,8 +281,24 @@ class ImageCropperView : View {
             val expansion = (newImageWidth - viewWidth) / 2
 
             rectF.set(-expansion, 0f, viewWidth + expansion, viewHeight)
+
+        } else if (getImageSizeRatio() == 1f) { //The rawImageWidth and rawImageHeight are equals
+            rectF.set(0f, 0f, viewWidth, viewHeight)
+        } else {//The smallest side of the image is rawImageWidth
+            Toast.makeText(context, ">= 1 ", Toast.LENGTH_LONG).show()
+
+            scale = getScale(viewHeight, rawImageWidth)
+
+            val newImageHeight = rawImageHeight * scale
+
+            val expansion = (newImageHeight - viewHeight) / 2
+
+            rectF.set(0f, -expansion, viewWidth, viewHeight + expansion)
         }
     }
+
+    // 90 -> ancho < alto
+    // 0 -> ancho > alto
 
     fun updateGridDrawable() {
         LogUtil.e("rectF left ", "${rectF.left}")
@@ -323,7 +322,7 @@ class ImageCropperView : View {
      * between the width and the height of the view, width:height -> k
      * for example: 4:3 -> 0.8, 16:9 -> 0.2, 1:1 -> 1
      */
-    private fun getImageSizeRatio() = rawImageHeight / rawImageWidth
+    private fun getImageSizeRatio() = rawImageWidth / rawImageHeight
 
 
     private fun getScale(smallestSideOfView: Float, smallestSideOfImage: Float) = smallestSideOfView / smallestSideOfImage
