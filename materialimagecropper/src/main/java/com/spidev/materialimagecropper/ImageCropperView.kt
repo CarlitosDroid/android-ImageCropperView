@@ -7,9 +7,12 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.provider.MediaStore
+import android.support.v4.view.VelocityTrackerCompat
 import android.util.AttributeSet
 import android.util.Log
 import android.view.GestureDetector
+import android.view.MotionEvent
+import android.view.VelocityTracker
 import android.view.View
 import android.widget.Toast
 
@@ -19,13 +22,16 @@ import android.widget.Toast
 
 class ImageCropperView : View {
 
-    var gestureDetector: GestureDetector? = null
+    lateinit var gestureDetector: GestureDetector
     var drawable: Drawable? = null
     var makeDrawableAsyncTask: MakeDrawableAsyncTask? = null
 
     private lateinit var mImageUri: Uri
     private var gridDrawable = GridDrawable()
     private var mDrawable: Drawable? = null
+
+
+    private var velocityTracker: VelocityTracker? = null
 
     /**
      * View dimension
@@ -58,6 +64,8 @@ class ImageCropperView : View {
     }
 
     fun initialize(attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int) {
+
+        //gestureDetector = GestureDetector(context, onGestureListener)
 
 //        gestureDetector = GestureDetector(this.context, object : GestureDetector.OnGestureListener {
 //            override fun onShowPress(p0: MotionEvent?) {
@@ -253,12 +261,12 @@ class ImageCropperView : View {
         //mDrawable.bounds = rectF
         mDrawable?.setBounds(rectF.left.toInt(), rectF.top.toInt(), rectF.right.toInt(), rectF.bottom.toInt())
         mDrawable?.draw(canvas)
-        //gridDrawable.draw(canvas)
+        gridDrawable.draw(canvas)
     }
 
     private fun refreshDrawable() {
         setCoordinatesToRectangleAndGetTheDrawableScale()
-        //updateGridDrawable()
+        updateGridDrawable()
         invalidate()
     }
 
@@ -308,13 +316,15 @@ class ImageCropperView : View {
         LogUtil.e("rectF width ", "${rectF.width()}")
         LogUtil.e("rectF height ", "${rectF.height()}")
 
-        if (getImageSizeRatio() == 1f) {
+
+        gridDrawable.setBounds(400, 10, 0, 20)
+        /*if (getImageSizeRatio() == 1f) {
 
         } else if (getImageSizeRatio() < 1f) {
             gridDrawable.setBounds(rectF.left.toInt(), Math.abs(rectF.top.toInt()), rectF.right.toInt(), rectF.bottom.toInt())
         } else {
             gridDrawable.setBounds(Math.abs(rectF.left.toInt()), rectF.top.toInt(), rectF.right.toInt(), rectF.bottom.toInt())
-        }
+        }*/
     }
 
     /**
@@ -351,6 +361,68 @@ class ImageCropperView : View {
         //RATIO VALUE BY DEFAULT TO SPECIFY A SQUARE(1:1)
         const val DEFAULT_RATIO = 1f
     }
+
+    private var rawX = 0f
+    private var rawY = 0f
+    private var dx = 0f
+    private var dy = 0f
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                rawX = event.rawX
+                rawY = event.rawY
+            }
+
+            MotionEvent.ACTION_MOVE -> {
+
+                dx = event.rawX - rawX
+                dy = event.rawY - rawY
+
+                rectF.left += dx
+                rectF.right += dx
+
+                rectF.top += dy
+                rectF.bottom += dy
+
+                invalidate()
+
+                rawX = event.rawX
+                rawY = event.rawY
+            }
+            MotionEvent.ACTION_UP -> {
+
+            }
+            MotionEvent.ACTION_CANCEL -> {
+
+            }
+        }
+
+        return true
+    }
+
+
+    val onGestureListener = object : GestureDetector.OnGestureListener {
+        override fun onLongPress(e: MotionEvent?) {}
+
+        override fun onScroll(e1: MotionEvent?, e2: MotionEvent?, distanceX: Float, distanceY: Float): Boolean {
+
+
+            return true
+        }
+
+        override fun onFling(e1: MotionEvent?, e2: MotionEvent?, velocityX: Float, velocityY: Float): Boolean = false
+
+        override fun onDown(e: MotionEvent?): Boolean = true
+
+        override fun onSingleTapUp(e: MotionEvent?): Boolean = false
+
+        override fun onShowPress(e: MotionEvent?) {}
+
+    }
+
+
 }
 
 
