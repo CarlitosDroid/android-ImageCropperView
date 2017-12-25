@@ -428,6 +428,9 @@ class ImageCropperView : View {
         return dx1
     }
 
+    /**
+     *
+     */
     fun calculateOverScrollX(): Float {
         return if (rectF.left <= 0 && rectF.right >= viewWidth) {
             0f
@@ -436,6 +439,9 @@ class ImageCropperView : View {
         }
     }
 
+    /**
+     *
+     */
     fun calculateOverScrollY(): Float {
         return if (rectF.top <= 0 && rectF.bottom >= viewHeight) {
             0f
