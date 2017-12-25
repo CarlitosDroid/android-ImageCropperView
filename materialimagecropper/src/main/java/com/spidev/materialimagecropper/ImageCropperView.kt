@@ -237,9 +237,6 @@ class ImageCropperView : View {
      */
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-        LogUtil.e("x-onDraw", "onDraw")
-        Log.e("x-mDrawable", "mDrawable $mDrawable")
-        Log.e("x-RECF", "RECF ${rectF.left.toInt()}- ${rectF.top.toInt()}- ${rectF.right.toInt()}- ${rectF.bottom.toInt()}")
 
         // el parametro left
         // los dos primeros parametros parecen margin, los otros dos parametros anchura y altura
@@ -364,8 +361,8 @@ class ImageCropperView : View {
 
     private var rawX = 0f
     private var rawY = 0f
-    private var dx = 0f
-    private var dy = 0f
+    private var distanceX = 0f
+    private var distanceY = 0f
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
 
@@ -377,14 +374,17 @@ class ImageCropperView : View {
 
             MotionEvent.ACTION_MOVE -> {
 
-                dx = event.rawX - rawX
-                dy = event.rawY - rawY
+                distanceX = event.rawX - rawX
+                distanceY = event.rawY - rawY
 
-                rectF.left += dx
-                rectF.right += dx
+                distanceX = applyOverScrollFix(distanceX, calculateOverScrollX(), true)
+                distanceY = applyOverScrollFix(distanceY, calculateOverScrollY(), true)
 
-                rectF.top += dy
-                rectF.bottom += dy
+                rectF.left += distanceX
+                rectF.right += distanceX
+
+                rectF.top += distanceY
+                rectF.bottom += distanceY
 
                 invalidate()
 
@@ -398,31 +398,51 @@ class ImageCropperView : View {
 
             }
         }
-
         return true
     }
 
+    private fun applyOverScrollFix(dx: Float, overScroll: Float, debug: Boolean): Float {
+        var dx1 = dx
 
-    val onGestureListener = object : GestureDetector.OnGestureListener {
-        override fun onLongPress(e: MotionEvent?) {}
+        //overscroll -> 0 a 1080
 
-        override fun onScroll(e1: MotionEvent?, e2: MotionEvent?, distanceX: Float, distanceY: Float): Boolean {
+        //offRatio crece de 0 a +
+        // a lo maximo llega a 2.5 porque tu dedo sale de la pantalla
+        val offRatio = Math.abs(overScroll) / viewWidth
 
-
-            return true
+        if (debug) {
+            //sqrt a lo mucho va de 0 a 1
+            //Log.e("VALORRRR","DISTANCE " + dx1)
+            Log.e("VALORRRR", "SCROLL " + overScroll)
+            //Log.e("VALORRRR","MAXIMUN " + 288f)
+            //Log.e("VALORRRR","OFFRATIO " + offRatio)
+            //Log.e("VALORRRR","SQRT " + Math.sqrt(offRatio))
+            //Log.e("VALORRRR","MULTI " + (315 * Math.sqrt(225.5)))
         }
 
-        override fun onFling(e1: MotionEvent?, e2: MotionEvent?, velocityX: Float, velocityY: Float): Boolean = false
-
-        override fun onDown(e: MotionEvent?): Boolean = true
-
-        override fun onSingleTapUp(e: MotionEvent?): Boolean = false
-
-        override fun onShowPress(e: MotionEvent?) {}
-
+        dx1 -= dx1 * Math.sqrt(offRatio.toDouble()).toFloat()
+        if (debug) {
+            //Log.e("VALORRRR","NEW " + dx1)
+            Log.e("VALORRRR", "--------------------")
+        }
+        return dx1
     }
 
+    fun calculateOverScrollX(): Float {
+        return if (rectF.left <= 0 && rectF.right >= viewWidth) {
+            0f
+        } else {
+            rectF.centerX() - viewWidth / 2
+        }
+    }
 
+    fun calculateOverScrollY(): Float {
+        return if (rectF.top <= 0 && rectF.bottom >= viewHeight) {
+            0f
+        } else {
+            rectF.centerY() - viewHeight / 2
+        }
+    }
 }
 
 

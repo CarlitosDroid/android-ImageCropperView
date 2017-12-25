@@ -71,7 +71,6 @@ class GridDrawable : Drawable() {
         val width = bounds.width()
         val height = bounds.height()
 
-        LogUtil.e(TAG, "BOUNDS GRID  $width - $height")
         //LogUtil.e(TAG, "width  $width")
         //LogUtil.e(TAG, "height  $height")
         //Basically bounds.left, bounds.right, bounds.top, bounds.bottom are the coordinates*/
