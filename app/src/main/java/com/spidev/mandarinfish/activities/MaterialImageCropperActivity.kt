@@ -77,7 +77,6 @@ class MaterialImageCropperActivity : AppCompatActivity() {
             override fun onBitmapLoaded(bitmap: Bitmap, from: Picasso.LoadedFrom?) {
                 Log.e("onBitmapLoaded", "onBitmapLoaded")
                 //ivFinal.setImageBitmap(bitmap)
-                micPicture.setImageUri(sourceUri)
                 micPicture.setImageBitmap(bitmap)
             }
         }

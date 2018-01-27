@@ -1,19 +1,18 @@
 package com.spidev.materialimagecropper
 
-import android.annotation.SuppressLint
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.provider.MediaStore
-import android.support.v4.view.VelocityTrackerCompat
 import android.util.AttributeSet
 import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
-import android.view.VelocityTracker
 import android.view.View
+import android.view.animation.DecelerateInterpolator
 import android.widget.Toast
 
 /**
@@ -22,34 +21,29 @@ import android.widget.Toast
 
 class ImageCropperView : View {
 
-    lateinit var gestureDetector: GestureDetector
     var drawable: Drawable? = null
-    var makeDrawableAsyncTask: MakeDrawableAsyncTask? = null
 
-    private lateinit var mImageUri: Uri
     private var gridDrawable = GridDrawable()
     private var mDrawable: Drawable? = null
 
-
-    private var velocityTracker: VelocityTracker? = null
+    private var mAnimator: ValueAnimator? = null
 
     /**
-     * View dimension
+     * Dimensions of the view
      */
     private var viewWidth = 0f
     private var viewHeight = 0f
 
     /**
-     * I dont know
+     * Dimensions of the drawable image
      */
-    private var rawImageWidth = 0f
-    private var rawImageHeight = 0f
+    private var drawableImageWidth = 0f
+    private var drawableImageHeight = 0f
 
     /**
-     * Setting up ratios default values
+     * This variable is used to scale the drawable
      */
-    private var minimumRatio = DEFAULT_MINIMUM_RATIO
-    private var maximumRatio = DEFAULT_MAXIMUM_RATIO
+    private var scale = 1f
 
     private val rectF = RectF()
 
@@ -64,48 +58,29 @@ class ImageCropperView : View {
     }
 
     fun initialize(attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int) {
+        mAnimator = ValueAnimator()
+        mAnimator!!.duration = 400
+        mAnimator!!.setFloatValues(0f, 1f)
+        mAnimator!!.interpolator = DecelerateInterpolator(0.25f)
+        mAnimator!!.addUpdateListener { animation ->
+            val animatedValue = animation.animatedValue as Float
 
-        //gestureDetector = GestureDetector(context, onGestureListener)
+            val overScrollX = measureOverScrollX()
+            val overScrollY = measureOverScrollY()
+            Log.e("x-overScrollY", "overScrollY " + overScrollY)
+            rectF.left -= (overScrollX * animatedValue)
+            rectF.right = rectF.left + (drawableImageWidth * scale)
 
-//        gestureDetector = GestureDetector(this.context, object : GestureDetector.OnGestureListener {
-//            override fun onShowPress(p0: MotionEvent?) {
-//
-//            }
-//
-//            override fun onSingleTapUp(p0: MotionEvent?): Boolean {
-//            }
-//
-//            override fun onDown(p0: MotionEvent?): Boolean {
-//            }
-//
-//            override fun onFling(p0: MotionEvent?, p1: MotionEvent?, p2: Float, p3: Float): Boolean {
-//            }
-//
-//            override fun onScroll(p0: MotionEvent?, p1: MotionEvent?, p2: Float, p3: Float): Boolean {
-//            }
-//
-//            override fun onLongPress(p0: MotionEvent?) {
-//            }
-//
-//
-//        })
-    }
+            rectF.top -= (overScrollY * animatedValue)
+            rectF.bottom = rectF.top + (drawableImageHeight * scale)
 
-    /**
-     * is it neccesary?
-     */
-    private fun setRatio(minimumRatio: Float, maximumRatio: Float) {
-        //minimumRatio = this@ImageCropperView.minimumRatio
-        //maximumRatio = maximumRatio
-    }
-
-    fun setImageUri(uri: Uri) {
-        mImageUri = uri
+            invalidate()
+        }
     }
 
     fun setImageBitmap(bitmap: Bitmap) {
-        rawImageWidth = bitmap.width.toFloat()
-        rawImageHeight = bitmap.height.toFloat()
+        drawableImageWidth = bitmap.width.toFloat()
+        drawableImageHeight = bitmap.height.toFloat()
         mDrawable = BitmapDrawable(context.resources, bitmap)
         refreshDrawable()
     }
@@ -217,17 +192,9 @@ class ImageCropperView : View {
         super.onLayout(changed, left, top, right, bottom)
         Log.e("x-onLayout", "onLayout")
 
-        LogUtil.e("onLayout-left", left.toString())
-        LogUtil.e("onLayout-rigth", right.toString())
-        LogUtil.e("onLayout-bottom", bottom.toString())
-        LogUtil.e("onLayout-top", top.toString())
-
         //Calculating width and height of the view
         viewHeight = right.toFloat() - left.toFloat()
         viewWidth = bottom.toFloat() - top.toFloat()
-
-        LogUtil.e("onLayout-mWidth", viewWidth.toString())
-        LogUtil.e("onLayout-mHeight", viewHeight.toString())
     }
 
     /**
@@ -237,11 +204,6 @@ class ImageCropperView : View {
      */
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-
-        // el parametro left
-        // los dos primeros parametros parecen margin, los otros dos parametros anchura y altura
-        //mDrawable?.setBounds(rectF.left.toInt(), rectF.top.toInt(), rectF.right.toInt(), rectF.bottom.toInt())
-
         /**
          * Specify a bounding rectangle for the Drawable. This is where the drawable
          * will draw when its draw() method is called.
@@ -255,7 +217,6 @@ class ImageCropperView : View {
          * VER LA DIFERENCIA ENTRE RECTF Y RECT - ---> porque setBounds tambien recive un rectangulo
          */
 
-        //mDrawable.bounds = rectF
         mDrawable?.setBounds(rectF.left.toInt(), rectF.top.toInt(), rectF.right.toInt(), rectF.bottom.toInt())
         mDrawable?.draw(canvas)
         gridDrawable.draw(canvas)
@@ -269,19 +230,18 @@ class ImageCropperView : View {
 
     private fun setCoordinatesToRectangleAndGetTheDrawableScale() {
 
-        LogUtil.e("RAW IMAGE WIDTH ", "$rawImageWidth")
-        LogUtil.e("RAW IMAGE HEIGHT  ", "$rawImageHeight")
+        LogUtil.e("RAW IMAGE WIDTH ", "$drawableImageWidth")
+        LogUtil.e("RAW IMAGE HEIGHT  ", "$drawableImageHeight")
         LogUtil.e("CURRENT RATIO ", "${getImageSizeRatio()}")
-        LogUtil.e("ANCHO VISTA ", "${viewWidth}")
+        LogUtil.e("ANCHO VISTA ", "$viewWidth")
         LogUtil.e("ALTO VISTA", "$viewHeight")
 
-        var scale = 1f
         if (getImageSizeRatio() >= 1f) { //The smallest side of the image is rawImageHeight
             Toast.makeText(context, "< 1 ", Toast.LENGTH_LONG).show()
 
-            scale = getScale(viewHeight, rawImageHeight)
+            scale = getScale(viewHeight, drawableImageHeight)
 
-            val newImageWidth = rawImageWidth * scale
+            val newImageWidth = drawableImageWidth * scale
 
             val expansion = (newImageWidth - viewWidth) / 2
 
@@ -292,9 +252,9 @@ class ImageCropperView : View {
         } else {//The smallest side of the image is rawImageWidth
             Toast.makeText(context, ">= 1 ", Toast.LENGTH_LONG).show()
 
-            scale = getScale(viewHeight, rawImageWidth)
+            scale = getScale(viewHeight, drawableImageWidth)
 
-            val newImageHeight = rawImageHeight * scale
+            val newImageHeight = drawableImageHeight * scale
 
             val expansion = (newImageHeight - viewHeight) / 2
 
@@ -329,8 +289,7 @@ class ImageCropperView : View {
      * between the width and the height of the view, width:height -> k
      * for example: 4:3 -> 0.8, 16:9 -> 0.2, 1:1 -> 1
      */
-    private fun getImageSizeRatio() = rawImageWidth / rawImageHeight
-
+    private fun getImageSizeRatio() = drawableImageWidth / drawableImageHeight
 
     private fun getScale(smallestSideOfView: Float, smallestSideOfImage: Float) = smallestSideOfView / smallestSideOfImage
 
@@ -364,21 +323,22 @@ class ImageCropperView : View {
     private var distanceX = 0f
     private var distanceY = 0f
 
+    //TODO analyze this method
     override fun onTouchEvent(event: MotionEvent): Boolean {
 
         when (event.actionMasked) {
+
             MotionEvent.ACTION_DOWN -> {
                 rawX = event.rawX
                 rawY = event.rawY
             }
 
             MotionEvent.ACTION_MOVE -> {
-
                 distanceX = event.rawX - rawX
                 distanceY = event.rawY - rawY
 
-                distanceX = applyOverScrollFix(distanceX, calculateOverScrollX(), true)
-                distanceY = applyOverScrollFix(distanceY, calculateOverScrollY(), true)
+                distanceX = applyOverScrollFix(distanceX, measureOverScrollX())
+                distanceY = applyOverScrollFix(distanceY, measureOverScrollY())
 
                 rectF.left += distanceX
                 rectF.right += distanceX
@@ -391,64 +351,105 @@ class ImageCropperView : View {
                 rawX = event.rawX
                 rawY = event.rawY
             }
-            MotionEvent.ACTION_UP -> {
 
-            }
-            MotionEvent.ACTION_CANCEL -> {
-
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_OUTSIDE -> {
+                mAnimator!!.start()
             }
         }
         return true
     }
 
-    private fun applyOverScrollFix(dx: Float, overScroll: Float, debug: Boolean): Float {
+    private fun applyOverScrollFix(dx: Float, overScroll: Float): Float {
         var dx1 = dx
-
         //overscroll -> 0 a 1080
 
         //offRatio crece de 0 a +
         // a lo maximo llega a 2.5 porque tu dedo sale de la pantalla
         val offRatio = Math.abs(overScroll) / viewWidth
 
-        if (debug) {
-            //sqrt a lo mucho va de 0 a 1
-            //Log.e("VALORRRR","DISTANCE " + dx1)
-            Log.e("VALORRRR", "SCROLL " + overScroll)
-            //Log.e("VALORRRR","MAXIMUN " + 288f)
-            //Log.e("VALORRRR","OFFRATIO " + offRatio)
-            //Log.e("VALORRRR","SQRT " + Math.sqrt(offRatio))
-            //Log.e("VALORRRR","MULTI " + (315 * Math.sqrt(225.5)))
-        }
-
         dx1 -= dx1 * Math.sqrt(offRatio.toDouble()).toFloat()
-        if (debug) {
-            //Log.e("VALORRRR","NEW " + dx1)
-            Log.e("VALORRRR", "--------------------")
-        }
+
         return dx1
     }
 
     /**
-     *
+     * This method evaluate internal difference between view and drawable image,
+     * and these difference are visible for the user.
+     * for example: if the user scroll the drawable image more to the right than the view left side,
+     * the user will see a part of the background in the view left side.
+     * This method measure is called when the use scroll the drawable image and
+     * when the drawable image return to it's position through animator
      */
-    fun calculateOverScrollX(): Float {
-        return if (rectF.left <= 0 && rectF.right >= viewWidth) {
-            0f
-        } else {
-            rectF.centerX() - viewWidth / 2
+    private fun measureOverScrollX(): Float {
+
+        // Is drawable width smaller than view width
+        // Then we have to return the 'distance between the center points of the x-axis only'
+        if (rectF.width() <= viewWidth) {
+            return rectF.centerX() - viewWidth / 2
         }
+
+        // Is drawable width bigger than view width
+        // Then we don't have any internal difference of the x-axis that's why we return 0
+        if (rectF.left <= 0 && rectF.right >= viewWidth) {
+            return 0f
+        }
+
+        // Is drawable left side more to the right than left side of the view
+        // Then we have internal difference between view left side and drawable left side
+        // and we returned that difference
+        if(rectF.left > 0){
+            return rectF.left
+        }
+
+        // Is drawable right side more to the left than right side of the view
+        // Then we have internal difference between view right side and drawable right side
+        // and we returned that difference
+        if(rectF.right < viewWidth){
+            return rectF.right - viewWidth
+        }
+
+        return 0f
     }
 
     /**
-     *
+     * This method evaluate internal difference between view and drawable image,
+     * and these difference are visible for the user.
+     * for example: if the user scroll the drawable image more to the bottom than the view top side,
+     * the user will see a part of the background in the view top side
+     * This method measure is called when the use scroll the drawable image and
+     * when the drawable image return to it's position through animator
      */
-    fun calculateOverScrollY(): Float {
-        return if (rectF.top <= 0 && rectF.bottom >= viewHeight) {
-            0f
-        } else {
-            rectF.centerY() - viewHeight / 2
+    private fun measureOverScrollY(): Float {
+
+        // Is drawable height smaller than view height
+        // Then we have to return the 'distance between the center points of the y-axis only'
+        if (rectF.height() <= viewHeight) {
+            return rectF.centerY() - viewHeight / 2
         }
+
+        // Is drawable height bigger than view height
+        // Then we don't have any internal difference of the y-axis that's why we return 0
+        if (rectF.top <= 0 && rectF.bottom >= viewHeight) {
+            return 0f
+        }
+
+        // Is drawable top side more to the bottom than top side of the view
+        // Then we have internal difference between view top side and drawable top side
+        // and we returned that difference
+        if(rectF.top > 0){
+            return rectF.top
+        }
+
+        // Is drawable bottom side more to the top than bottom side of the view
+        // Then we have internal difference between view bottom side and drawable bottom side
+        // and we returned that difference
+        if(rectF.bottom < viewHeight){
+            return rectF.bottom - viewHeight
+        }
+
+        return 0f
     }
+
 }
 
 
