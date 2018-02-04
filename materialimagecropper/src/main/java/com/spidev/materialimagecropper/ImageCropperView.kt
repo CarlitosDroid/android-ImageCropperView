@@ -9,6 +9,7 @@ import android.provider.MediaStore
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.widget.Toast
@@ -18,6 +19,8 @@ import android.widget.Toast
  */
 
 class ImageCropperView : View {
+
+    private lateinit var scaleGestureDetector: ScaleGestureDetector
 
     private var gridDrawable = GridDrawable()
 
@@ -47,7 +50,7 @@ class ImageCropperView : View {
     /**
      * This variable is used to scale the drawable
      */
-    private var scale = 1f
+    private var drawableImageScale = 1f
 
     /**
      * The rectangle for handling the bounds of the drawable image
@@ -94,14 +97,19 @@ class ImageCropperView : View {
             val overScrollX = measureOverScrollX()
             val overScrollY = measureOverScrollY()
 
+            // for example image that user move the image (100, 0) and then ACTION UP
+            // (overScrollX * animatedValue) increase its value from 0 to 50 and then 50 to 0
+            // between the duration time setted only for showing an velocity effect
             rectF.left -= (overScrollX * animatedValue)
-            rectF.right = rectF.left + (drawableImageWidth * scale)
+            rectF.right = rectF.left + (drawableImageWidth * drawableImageScale)
 
             rectF.top -= (overScrollY * animatedValue)
-            rectF.bottom = rectF.top + (drawableImageHeight * scale)
+            rectF.bottom = rectF.top + (drawableImageHeight * drawableImageScale)
 
             invalidate()
         }
+
+        scaleGestureDetector = ScaleGestureDetector(context, onScaleGestureListener)
     }
 
     fun setImageBitmap(bitmap: Bitmap) {
@@ -254,6 +262,9 @@ class ImageCropperView : View {
         invalidate()
     }
 
+    /**
+     * This method set the initial scale of the drawable image
+     */
     private fun setCoordinatesToRectangleAndGetTheDrawableScale() {
 
         LogUtil.e("RAW IMAGE WIDTH ", "$drawableImageWidth")
@@ -265,9 +276,9 @@ class ImageCropperView : View {
         if (getImageSizeRatio() >= 1f) { //The smallest side of the image is rawImageHeight
             Toast.makeText(context, "< 1 ", Toast.LENGTH_LONG).show()
 
-            scale = getScale(viewHeight, drawableImageHeight)
+            drawableImageScale = getScale(viewHeight, drawableImageHeight)
 
-            val newImageWidth = drawableImageWidth * scale
+            val newImageWidth = drawableImageWidth * drawableImageScale
 
             val expansion = (newImageWidth - viewWidth) / 2
 
@@ -278,9 +289,9 @@ class ImageCropperView : View {
         } else {//The smallest side of the image is rawImageWidth
             Toast.makeText(context, ">= 1 ", Toast.LENGTH_LONG).show()
 
-            scale = getScale(viewHeight, drawableImageWidth)
+            drawableImageScale = getScale(viewHeight, drawableImageWidth)
 
-            val newImageHeight = drawableImageHeight * scale
+            val newImageHeight = drawableImageHeight * drawableImageScale
 
             val expansion = (newImageHeight - viewHeight) / 2
 
@@ -329,6 +340,10 @@ class ImageCropperView : View {
      * We override onTouchEvent for handling movements action on drawable image
      */
     override fun onTouchEvent(event: MotionEvent): Boolean {
+
+        //Detector handling event like zoom in or zoom out on the drawable image
+        scaleGestureDetector.onTouchEvent(event)
+
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 rawX = event.rawX
@@ -462,6 +477,93 @@ class ImageCropperView : View {
         }
 
         return 0f
+    }
+
+    /**
+     * This listener reacts when the user touch the drawable image with 2 or more fingers
+     */
+    private var onScaleGestureListener = object : ScaleGestureDetector.OnScaleGestureListener {
+        override fun onScaleBegin(detector: ScaleGestureDetector?): Boolean {
+            return true
+        }
+
+        override fun onScaleEnd(detector: ScaleGestureDetector?) {
+        }
+
+        override fun onScale(detector: ScaleGestureDetector): Boolean {
+
+            //tiendre a crecer
+            // overScale = drawableImageScale / 0.8
+
+            var overScale = measureOverScale()
+
+            //Log.e("FACTOR" , "FACTOR " + detector.scaleFactor)
+            //Log.e("FOCUSX" , "FOCUSX " + detector.focusX)
+            //Log.e("FOCUSY" , "FOCUSY " + detector.focusY)
+
+            Log.e("OVERSCALE" , "OVERSCALE " + overScale)
+
+            var scale = applyOverScaleFix(detector.scaleFactor, overScale)
+
+            drawableImageScale = drawableImageScale * scale
+
+            //setScaleKeepingFocus(detector.focusX, detector.focusY)
+
+
+
+
+            invalidate()
+            return true
+        }
+
+    }
+
+    private val MAXIMUM_OVER_SCALE = 0.7f
+
+    private fun applyOverScaleFix(scaleFactor: Float, overScale: Float): Float {
+        var mOverScale = overScale
+        var mScaleFactor = scaleFactor
+
+        if (mOverScale == 1f) {
+            return mScaleFactor
+        }
+
+        if (mOverScale > 1) {
+            mOverScale = 1f / mOverScale
+        }
+
+        val wentOverScaleRatio = (overScale - MAXIMUM_OVER_SCALE) / (1 - MAXIMUM_OVER_SCALE)
+
+        mScaleFactor *= wentOverScaleRatio + (1 - wentOverScaleRatio) / scaleFactor
+
+        return scaleFactor
+    }
+
+    private fun measureOverScale(): Float {
+        if (drawableImageScale < 0.83f) {
+            return drawableImageScale / 0.83f
+        }
+
+        if (drawableImageScale > 0.83f) {
+            return drawableImageScale / 0.83f
+        }
+
+        return 1f
+    }
+
+    private fun setScaleKeepingFocus(focusX: Float, focusY: Float) {
+
+        val focusRatioX = (focusX - rectF.left) / rectF.width()
+        val focusRatioY = (focusY - rectF.top) / rectF.height()
+
+        val scaledFocusX = rectF.left + focusRatioX * rectF.width()
+        val scaledFocusY = rectF.top + focusRatioY * rectF.height()
+
+        //LogUtil.e("SCALE", "SCALE ${focusX - scaledFocusX}")
+
+        rectF.left += focusX - scaledFocusX
+        rectF.top += focusY - scaledFocusY
+
     }
 }
 
