@@ -7,11 +7,17 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.AsyncTask
+import android.R.attr.bitmap
+import android.content.res.Resources
+import android.provider.MediaStore
+import android.util.Log
+import android.widget.Toast
+
 
 /**
  * Created by Carlos Leonardo Camilo Vargas Huamán on 8/14/17.
  */
-class MakeDrawableAsyncTask
+open class MakeDrawableAsyncTask
 (context: Context, uri: Uri, targetWidth: Int, targetHeight: Int)
     : AsyncTask<Void, Void, Drawable>() {
     //private var mContext: Context? = null
@@ -25,6 +31,7 @@ class MakeDrawableAsyncTask
 //
 //
 
+    private var mDrawable: Drawable? = null
     private var mUri: Uri? = null
     private var mTargetWidth: Int = 0
     private var mTargetHeight: Int = 0
@@ -41,13 +48,12 @@ class MakeDrawableAsyncTask
         mTargetWidth = targetWidth
         mTargetHeight = targetHeight
 
+        Log.e("INIT","INIT")
+
     }
 
-
     override fun doInBackground(vararg p0: Void?): Drawable {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-
-        var options: BitmapFactory.Options
+        var options = BitmapFactory.Options()
         options.inSampleSize = 1
         options.inJustDecodeBounds = true
 
@@ -55,14 +61,18 @@ class MakeDrawableAsyncTask
         BitmapFactory.decodeStream(mContext!!.contentResolver!!.openInputStream(mUri),
                 null, options)
 
-//        var bitmap: Bitmap = bitmap
-//
-//        bitmap = bitm
-//
-//
-//        var drawable: Drawable
-//        drawable = BitmapDrawable.
+        val bitmapp = MediaStore.Images.Media.getBitmap(mContext?.contentResolver,
+                mUri)
 
+        Log.e("IN BACKGROUND","IN BACKGROIUND  $bitmapp")
+        return BitmapDrawable(mContext?.resources, bitmapp)
+    }
+
+    override fun onPostExecute(result: Drawable?) {
+        super.onPostExecute(result)
+        mDrawable = result
+
+        Log.e("OBJETTTTT2","OPBJETTTT "   + mDrawable)
 
     }
 
@@ -70,9 +80,36 @@ class MakeDrawableAsyncTask
     fun getBitmap(context: Context, uri: Uri, options: BitmapFactory.Options) {
 
 
-
-
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 }

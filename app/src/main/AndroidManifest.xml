@@ -16,7 +16,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".MainActivity"
+            android:name=".activities.MainActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
@@ -37,10 +37,13 @@
         </provider>
 
         <activity
-            android:name=".FilterActivity"
-            android:label="@string/title_activity_filter"
+            android:name=".activities.MaterialImageCropperActivity"
+            android:label="@string/title_activity_material_image_cropper"
             android:theme="@style/AppTheme.NoActionBar" />
-
+        <activity
+            android:name=".activities.TestActivity"
+            android:label="@string/title_activity_test"
+            android:theme="@style/AppTheme"></activity>
     </application>
 
 </manifest>
