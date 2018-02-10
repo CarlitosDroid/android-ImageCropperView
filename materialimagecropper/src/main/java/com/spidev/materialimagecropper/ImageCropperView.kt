@@ -73,6 +73,8 @@ class ImageCropperView : View {
     private var mDisplayDrawableLeft = 0f
     private var mDisplayDrawableTop = 0f
 
+    private var scaledDrawableImageWidth = 0f
+
     constructor(context: Context) : super(context)
 
     constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {
@@ -83,7 +85,7 @@ class ImageCropperView : View {
         initialize(attrs, defStyleAttr, 0)
     }
 
-    fun initialize(attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int) {
+    private fun initialize(attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int) {
         mAnimator = ValueAnimator()
         mAnimator!!.duration = 400
         mAnimator!!.setFloatValues(0f, 1f)
@@ -93,11 +95,21 @@ class ImageCropperView : View {
         scaleGestureDetector = ScaleGestureDetector(context, onScaleGestureListener)
     }
 
+    /**
+     * This function is executed by the user at each moment
+     * @param bitmap The bitmap to be showed
+     */
     fun setImageBitmap(bitmap: Bitmap) {
         drawableImageWidth = bitmap.width.toFloat()
         drawableImageHeight = bitmap.height.toFloat()
         bitmapDrawable = BitmapDrawable(context.resources, bitmap)
         refreshDrawable()
+    }
+
+    private fun refreshDrawable() {
+        placeScaledDrawableImageInTheCenter()
+        updateGridDrawable()
+        invalidate()
     }
 
     /**
@@ -232,60 +244,63 @@ class ImageCropperView : View {
          * VER LA DIFERENCIA ENTRE RECTF Y RECT - ---> porque setBounds tambien recive un rectangulo
          */
 
-
         rectF.left = mDisplayDrawableLeft
         rectF.top = mDisplayDrawableTop
-        rectF.right = rectF.left + (drawableImageScale * drawableImageWidth)
-        rectF.bottom = rectF.top + (drawableImageScale * drawableImageHeight)
-
+        rectF.right = rectF.left + getScaledDrawableImageWidth(drawableImageWidth, drawableImageScale)
+        rectF.bottom = rectF.top + getScaledDrawableImageHeight(drawableImageHeight, drawableImageScale)
 
         bitmapDrawable?.setBounds(rectF.left.toInt(), rectF.top.toInt(), rectF.right.toInt(), rectF.bottom.toInt())
         bitmapDrawable?.draw(canvas)
         gridDrawable.draw(canvas)
     }
 
-    private fun refreshDrawable() {
-        setCoordinatesToRectangleAndGetTheDrawableScale()
-        updateGridDrawable()
-        invalidate()
+    /**
+     * This method place the drawable image inside the view
+     */
+    private fun placeDrawableImageInTheCenter() {
+       //TODO probably, here we can make the opposite functionality
     }
 
     /**
-     * This method set the initial scale of the drawable image
+     * This method adjusts the image to the view, and the placed it center
      */
-    private fun setCoordinatesToRectangleAndGetTheDrawableScale() {
-
-        LogUtil.e("RAW IMAGE WIDTH ", "$drawableImageWidth")
-        LogUtil.e("RAW IMAGE HEIGHT  ", "$drawableImageHeight")
-        LogUtil.e("CURRENT RATIO ", "${getImageSizeRatio()}")
-        LogUtil.e("ANCHO VISTA ", "$viewWidth")
-        LogUtil.e("ALTO VISTA", "$viewHeight")
-
-        if (getImageSizeRatio() >= 1f) { //The smallest side of the image is rawImageHeight
-            Toast.makeText(context, "< 1 ", Toast.LENGTH_LONG).show()
-
-            drawableImageScale = getScale(viewHeight, drawableImageHeight)
-
-            val newImageWidth = drawableImageWidth * drawableImageScale
-
-            val expansion = (newImageWidth - viewWidth) / 2
-
-            rectF.set(-expansion, 0f, viewWidth + expansion, viewHeight)
-
-        } else if (getImageSizeRatio() == 1f) { //The rawImageWidth and rawImageHeight are equals
-            rectF.set(0f, 0f, viewWidth, viewHeight)
-        } else {//The smallest side of the image is rawImageWidth
-            Toast.makeText(context, ">= 1 ", Toast.LENGTH_LONG).show()
-
-            drawableImageScale = getScale(viewHeight, drawableImageWidth)
-
-            val newImageHeight = drawableImageHeight * drawableImageScale
-
-            val expansion = (newImageHeight - viewHeight) / 2
-
-            rectF.set(0f, -expansion, viewWidth, viewHeight + expansion)
+    private fun placeScaledDrawableImageInTheCenter() {
+        when {
+        //The smallest side of the image is rawImageHeight
+            getImageSizeRatio() >= 1f -> {
+                drawableImageScale = getScale(viewHeight, drawableImageHeight)
+                scaledDrawableImageWidth = getScaledDrawableImageWidth(drawableImageWidth, drawableImageScale)
+                val expansion = (scaledDrawableImageWidth - viewWidth) / 2
+                mDisplayDrawableLeft = -expansion
+                mDisplayDrawableTop = 0f
+            }
+        //The rawImageWidth and rawImageHeight are equals
+            getImageSizeRatio() == 1f -> {
+                mDisplayDrawableLeft = 0f
+                mDisplayDrawableTop = 0f
+            }
+        //The smallest side of the image is rawImageWidth
+            else -> {
+                drawableImageScale = getScale(viewHeight, drawableImageWidth)
+                val newImageHeight = getScaledDrawableImageHeight(drawableImageHeight, drawableImageScale)
+                val expansion = (newImageHeight - viewHeight) / 2
+                mDisplayDrawableLeft = 0f
+                mDisplayDrawableTop = -expansion
+            }
         }
     }
+
+    /**
+     * This method scales the drawable image width
+     */
+    private fun getScaledDrawableImageWidth(drawableImageWidth: Float, drawableImageScale: Float) =
+            drawableImageWidth * drawableImageScale
+
+    /**
+     * This method scales the drawable image height
+     */
+    private fun getScaledDrawableImageHeight(drawableImageHeight: Float, drawableImageScale: Float) =
+            drawableImageHeight * drawableImageScale
 
     // 90 -> ancho < alto
     // 0 -> ancho > alto
@@ -513,8 +528,8 @@ class ImageCropperView : View {
 
             drawableImageScale *= scale
 
-            rectF.left = mDisplayDrawableLeft
-            rectF.top = mDisplayDrawableTop
+            //rectF.left = mDisplayDrawableLeft
+            //rectF.top = mDisplayDrawableTop
 
             //Log.e("LEFFFT ","LEFFTT " + rectF.left)
             Log.e("TOPP ", "TOPP " + rectF.top)
@@ -574,21 +589,19 @@ class ImageCropperView : View {
     /**
      * Listener for settling drawable image after user ACTION UP
      */
-    private var onSettleAnimatorUpdateListener = object: ValueAnimator.AnimatorUpdateListener{
-        override fun onAnimationUpdate(animation: ValueAnimator) {
-            val animatedValue = animation.animatedValue as Float
+    private var onSettleAnimatorUpdateListener = ValueAnimator.AnimatorUpdateListener { animation ->
+        val animatedValue = animation.animatedValue as Float
 
-            val overScrollX = measureOverScrollX()
-            val overScrollY = measureOverScrollY()
+        val overScrollX = measureOverScrollX()
+        val overScrollY = measureOverScrollY()
 
-            // for example image that user move the image (100, 0) and then ACTION UP
-            // (overScrollX * animatedValue) increase its value from 0 to 50 and then 50 to 0
-            // between the duration time setted only for showing an velocity effect
-            mDisplayDrawableLeft -= overScrollX * animatedValue
-            mDisplayDrawableTop -= overScrollY * animatedValue
+        // for example image that user move the image (100, 0) and then ACTION UP
+        // (overScrollX * animatedValue) increase its value from 0 to 50 and then 50 to 0
+        // between the duration time setted only for showing an velocity effect
+        mDisplayDrawableLeft -= overScrollX * animatedValue
+        mDisplayDrawableTop -= overScrollY * animatedValue
 
-            invalidate()
-        }
+        invalidate()
     }
 }
 
