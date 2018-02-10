@@ -8,7 +8,9 @@ import android.net.Uri
 import android.provider.MediaStore
 import android.util.AttributeSet
 import android.util.Log
+import android.view.GestureDetector
 import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.widget.Toast
@@ -18,6 +20,16 @@ import android.widget.Toast
  */
 
 class ImageCropperView : View {
+
+    /**
+     * For handling movement on drawable image
+     */
+    private lateinit var gestureDetector: GestureDetector
+
+    /**
+     * For handling the zoom in and zoom out on the drawable image
+     */
+    private lateinit var scaleGestureDetector: ScaleGestureDetector
 
     private var gridDrawable = GridDrawable()
 
@@ -47,7 +59,7 @@ class ImageCropperView : View {
     /**
      * This variable is used to scale the drawable
      */
-    private var scale = 1f
+    private var drawableImageScale = 1f
 
     /**
      * The rectangle for handling the bounds of the drawable image
@@ -55,23 +67,13 @@ class ImageCropperView : View {
     private val rectF = RectF()
 
     /**
-     * These variables save the initial position and the last position of the drawable image
+     * The displacement of the image
+     * we only need the left and top because the others can be calculated from these
      */
-    private var rawX = 0f
-    private var rawY = 0f
+    private var mDisplayDrawableLeft = 0f
+    private var mDisplayDrawableTop = 0f
 
-    /**
-     * dxAtEachNewPoint is our displacement X-axis at each new point
-     * dyAtEachNewPoint is our displacement Y-axis at each new point
-     * these values can be negative or positive depends on direction
-     * for instance:
-     * (20, 10) initial position(ACTION_DOWN) -> (25, 5) final position(ACTION_MOVE)
-     * dxAtEachNewPoint is 25 - 20 = 5, dyAtEachNewPoint is 5 - 10 = -5
-     * (25, 5) (last position) -> (31, 0) (final position)
-     * dxAtEachNewPoint = 6, dyAtEachNewPoint = -5
-     */
-    private var dxAtEachNewPoint = 0f
-    private var dyAtEachNewPoint = 0f
+    private var scaledDrawableImageWidth = 0f
 
     constructor(context: Context) : super(context)
 
@@ -83,32 +85,31 @@ class ImageCropperView : View {
         initialize(attrs, defStyleAttr, 0)
     }
 
-    fun initialize(attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int) {
+    private fun initialize(attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int) {
         mAnimator = ValueAnimator()
         mAnimator!!.duration = 400
         mAnimator!!.setFloatValues(0f, 1f)
         mAnimator!!.interpolator = DecelerateInterpolator(0.25f)
-        mAnimator!!.addUpdateListener { animation ->
-            val animatedValue = animation.animatedValue as Float
-
-            val overScrollX = measureOverScrollX()
-            val overScrollY = measureOverScrollY()
-
-            rectF.left -= (overScrollX * animatedValue)
-            rectF.right = rectF.left + (drawableImageWidth * scale)
-
-            rectF.top -= (overScrollY * animatedValue)
-            rectF.bottom = rectF.top + (drawableImageHeight * scale)
-
-            invalidate()
-        }
+        mAnimator!!.addUpdateListener(onSettleAnimatorUpdateListener)
+        gestureDetector = GestureDetector(context, onGestureListener)
+        scaleGestureDetector = ScaleGestureDetector(context, onScaleGestureListener)
     }
 
+    /**
+     * This function is executed by the user at each moment
+     * @param bitmap The bitmap to be showed
+     */
     fun setImageBitmap(bitmap: Bitmap) {
         drawableImageWidth = bitmap.width.toFloat()
         drawableImageHeight = bitmap.height.toFloat()
         bitmapDrawable = BitmapDrawable(context.resources, bitmap)
         refreshDrawable()
+    }
+
+    private fun refreshDrawable() {
+        placeScaledDrawableImageInTheCenter()
+        updateGridDrawable()
+        invalidate()
     }
 
     /**
@@ -243,50 +244,63 @@ class ImageCropperView : View {
          * VER LA DIFERENCIA ENTRE RECTF Y RECT - ---> porque setBounds tambien recive un rectangulo
          */
 
+        rectF.left = mDisplayDrawableLeft
+        rectF.top = mDisplayDrawableTop
+        rectF.right = rectF.left + getScaledDrawableImageWidth(drawableImageWidth, drawableImageScale)
+        rectF.bottom = rectF.top + getScaledDrawableImageHeight(drawableImageHeight, drawableImageScale)
+
         bitmapDrawable?.setBounds(rectF.left.toInt(), rectF.top.toInt(), rectF.right.toInt(), rectF.bottom.toInt())
         bitmapDrawable?.draw(canvas)
         gridDrawable.draw(canvas)
     }
 
-    private fun refreshDrawable() {
-        setCoordinatesToRectangleAndGetTheDrawableScale()
-        updateGridDrawable()
-        invalidate()
+    /**
+     * This method place the drawable image inside the view
+     */
+    private fun placeDrawableImageInTheCenter() {
+       //TODO probably, here we can make the opposite functionality
     }
 
-    private fun setCoordinatesToRectangleAndGetTheDrawableScale() {
-
-        LogUtil.e("RAW IMAGE WIDTH ", "$drawableImageWidth")
-        LogUtil.e("RAW IMAGE HEIGHT  ", "$drawableImageHeight")
-        LogUtil.e("CURRENT RATIO ", "${getImageSizeRatio()}")
-        LogUtil.e("ANCHO VISTA ", "$viewWidth")
-        LogUtil.e("ALTO VISTA", "$viewHeight")
-
-        if (getImageSizeRatio() >= 1f) { //The smallest side of the image is rawImageHeight
-            Toast.makeText(context, "< 1 ", Toast.LENGTH_LONG).show()
-
-            scale = getScale(viewHeight, drawableImageHeight)
-
-            val newImageWidth = drawableImageWidth * scale
-
-            val expansion = (newImageWidth - viewWidth) / 2
-
-            rectF.set(-expansion, 0f, viewWidth + expansion, viewHeight)
-
-        } else if (getImageSizeRatio() == 1f) { //The rawImageWidth and rawImageHeight are equals
-            rectF.set(0f, 0f, viewWidth, viewHeight)
-        } else {//The smallest side of the image is rawImageWidth
-            Toast.makeText(context, ">= 1 ", Toast.LENGTH_LONG).show()
-
-            scale = getScale(viewHeight, drawableImageWidth)
-
-            val newImageHeight = drawableImageHeight * scale
-
-            val expansion = (newImageHeight - viewHeight) / 2
-
-            rectF.set(0f, -expansion, viewWidth, viewHeight + expansion)
+    /**
+     * This method adjusts the image to the view, and the placed it center
+     */
+    private fun placeScaledDrawableImageInTheCenter() {
+        when {
+        //The smallest side of the image is rawImageHeight
+            getImageSizeRatio() >= 1f -> {
+                drawableImageScale = getScale(viewHeight, drawableImageHeight)
+                scaledDrawableImageWidth = getScaledDrawableImageWidth(drawableImageWidth, drawableImageScale)
+                val expansion = (scaledDrawableImageWidth - viewWidth) / 2
+                mDisplayDrawableLeft = -expansion
+                mDisplayDrawableTop = 0f
+            }
+        //The rawImageWidth and rawImageHeight are equals
+            getImageSizeRatio() == 1f -> {
+                mDisplayDrawableLeft = 0f
+                mDisplayDrawableTop = 0f
+            }
+        //The smallest side of the image is rawImageWidth
+            else -> {
+                drawableImageScale = getScale(viewHeight, drawableImageWidth)
+                val newImageHeight = getScaledDrawableImageHeight(drawableImageHeight, drawableImageScale)
+                val expansion = (newImageHeight - viewHeight) / 2
+                mDisplayDrawableLeft = 0f
+                mDisplayDrawableTop = -expansion
+            }
         }
     }
+
+    /**
+     * This method scales the drawable image width
+     */
+    private fun getScaledDrawableImageWidth(drawableImageWidth: Float, drawableImageScale: Float) =
+            drawableImageWidth * drawableImageScale
+
+    /**
+     * This method scales the drawable image height
+     */
+    private fun getScaledDrawableImageHeight(drawableImageHeight: Float, drawableImageScale: Float) =
+            drawableImageHeight * drawableImageScale
 
     // 90 -> ancho < alto
     // 0 -> ancho > alto
@@ -329,33 +343,13 @@ class ImageCropperView : View {
      * We override onTouchEvent for handling movements action on drawable image
      */
     override fun onTouchEvent(event: MotionEvent): Boolean {
+
+        gestureDetector.onTouchEvent(event)
+        scaleGestureDetector.onTouchEvent(event)
+
         when (event.actionMasked) {
-            MotionEvent.ACTION_DOWN -> {
-                rawX = event.rawX
-                rawY = event.rawY
-            }
-
-            MotionEvent.ACTION_MOVE -> {
-                dxAtEachNewPoint = event.rawX - rawX
-                dyAtEachNewPoint = event.rawY - rawY
-
-                dxAtEachNewPoint = applyOverScrollFix(dxAtEachNewPoint, measureOverScrollX())
-                dyAtEachNewPoint = applyOverScrollFix(dyAtEachNewPoint, measureOverScrollY())
-
-                rectF.left += dxAtEachNewPoint
-                rectF.right += dxAtEachNewPoint
-
-                rectF.top += dyAtEachNewPoint
-                rectF.bottom += dyAtEachNewPoint
-
-                invalidate()
-
-                //save the last position for getting the new displacement
-                rawX = event.rawX
-                rawY = event.rawY
-            }
-
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_OUTSIDE -> {
+                Log.e("ACTION UP", "ACTION UP")
                 mAnimator!!.start()
             }
         }
@@ -462,6 +456,152 @@ class ImageCropperView : View {
         }
 
         return 0f
+    }
+
+    /**
+     * Listener for handling movement of the user on the drawable image
+     */
+    private var onGestureListener = object : GestureDetector.OnGestureListener {
+
+        override fun onShowPress(e: MotionEvent?) {
+        }
+
+        override fun onSingleTapUp(e: MotionEvent?): Boolean {
+            return false
+        }
+
+        override fun onDown(e: MotionEvent?): Boolean {
+            return true
+        }
+
+        override fun onFling(e1: MotionEvent?, e2: MotionEvent?, velocityX: Float, velocityY: Float): Boolean {
+            return false
+        }
+
+        override fun onScroll(e1: MotionEvent?, e2: MotionEvent?, distanceX: Float, distanceY: Float): Boolean {
+            var mDistanceX = -distanceX
+            var mDistanceY = -distanceY
+
+            mDistanceX = applyOverScrollFix(mDistanceX, measureOverScrollX())
+            mDistanceY = applyOverScrollFix(mDistanceY, measureOverScrollY())
+
+            mDisplayDrawableLeft += mDistanceX
+            mDisplayDrawableTop += mDistanceY
+
+            invalidate()
+            return true
+        }
+
+        override fun onLongPress(e: MotionEvent?) {
+        }
+    }
+
+    /**
+     * This listener reacts when the user touch the drawable image with 2 or more fingers
+     * with this listener we can handle the zoom in and zoom out of the image
+     */
+    private var onScaleGestureListener = object : ScaleGestureDetector.OnScaleGestureListener {
+        override fun onScaleBegin(detector: ScaleGestureDetector?): Boolean {
+            return true
+        }
+
+        override fun onScaleEnd(detector: ScaleGestureDetector?) {
+        }
+
+        override fun onScale(detector: ScaleGestureDetector): Boolean {
+            //TODO ANALYSING THIS METHOD
+            //imageScale 1.5
+            //overScale 1.8
+
+            //tiendre a crecer
+            // overScale = drawableImageScale / 0.8
+
+            val overScale = measureOverScale()
+
+            //cuando expando es 1.000
+            //cuando collapso es 0.90000
+            //Log.e("FACTOR" , "FACTOR " + mScaleFactor)
+            //Log.e("FOCUSX" , "FOCUSX " + detector.focusX)
+            //Log.e("FOCUSY" , "FOCUSY " + detector.focusY)
+
+            val scale = applyOverScaleFix(detector.scaleFactor, overScale)
+
+            drawableImageScale *= scale
+
+            //rectF.left = mDisplayDrawableLeft
+            //rectF.top = mDisplayDrawableTop
+
+            //Log.e("LEFFFT ","LEFFTT " + rectF.left)
+            Log.e("TOPP ", "TOPP " + rectF.top)
+            //Log.e("RIGHT ","RIGHT " + bounds.right);
+            //Log.e("BOTTOM ","BOTTOM " + mDisplayDrawableLeft);
+
+            invalidate()
+            return true
+        }
+    }
+
+    private val MAXIMUM_OVER_SCALE = 0.7f
+
+    //TODO ANALYZING THIS CODE
+    /**
+     * Returning the scale
+     */
+    private fun applyOverScaleFix(scaleFactor: Float, overScale: Float): Float {
+        var mOverScale = overScale
+        var mScaleFactor = scaleFactor
+
+        //si no hay over scale
+        if (mOverScale == 1f) {
+            return mScaleFactor
+        }
+
+        //
+        if (mOverScale > 1) {
+            mOverScale = 1f / mOverScale
+        }
+
+        val wentOverScaleRatio = (mOverScale - MAXIMUM_OVER_SCALE) / (1 - MAXIMUM_OVER_SCALE)
+
+        mScaleFactor *= wentOverScaleRatio + (1 - wentOverScaleRatio) / scaleFactor
+
+        return scaleFactor
+    }
+
+    /**
+     * Nuestra imagen puede sobreescalarse un valor entre 0.83f
+     * for instance:
+     * esto hace que si nuestra scala inicial es 1.5 aumente hasta 1.8
+     * 1.5 / 0.83 = 1.8
+     */
+    private fun measureOverScale(): Float {
+        if (drawableImageScale < 0.83f) {
+            return drawableImageScale / 0.83f
+        }
+
+        if (drawableImageScale > 0.83f) {
+            return drawableImageScale / 0.83f
+        }
+        return 1f
+    }
+
+
+    /**
+     * Listener for settling drawable image after user ACTION UP
+     */
+    private var onSettleAnimatorUpdateListener = ValueAnimator.AnimatorUpdateListener { animation ->
+        val animatedValue = animation.animatedValue as Float
+
+        val overScrollX = measureOverScrollX()
+        val overScrollY = measureOverScrollY()
+
+        // for example image that user move the image (100, 0) and then ACTION UP
+        // (overScrollX * animatedValue) increase its value from 0 to 50 and then 50 to 0
+        // between the duration time setted only for showing an velocity effect
+        mDisplayDrawableLeft -= overScrollX * animatedValue
+        mDisplayDrawableTop -= overScrollY * animatedValue
+
+        invalidate()
     }
 }
 
