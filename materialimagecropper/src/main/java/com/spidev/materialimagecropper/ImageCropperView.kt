@@ -264,7 +264,7 @@ class ImageCropperView : View {
         rectF.right = rectF.left + getScaledDrawableImageWidth(drawableImageWidth, drawableImageScale)
         rectF.bottom = rectF.top + getScaledDrawableImageHeight(drawableImageHeight, drawableImageScale)
 
-        Log.e("rectF.scaleeee "," " + drawableImageScale)
+        Log.e("rectF.scaleeee ", " " + drawableImageScale)
     }
 
     /**
@@ -362,7 +362,9 @@ class ImageCropperView : View {
 
         when (event.actionMasked) {
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_OUTSIDE -> {
-                mAnimator!!.start()
+                if (!mAnimator!!.isRunning) {
+                    mAnimator!!.start()
+                }
             }
         }
         return true
@@ -569,29 +571,33 @@ class ImageCropperView : View {
     /**
      * Returning the scale
      */
-    private fun applyOverScaleFix(scaleFactor: Float, overScale: Float): Float {
-        var mOverScale = overScale
-        var mScaleFactor = scaleFactor
-
-        //si no hay over scale
-        if (mOverScale == 1f) {
-            return mScaleFactor
+    private fun applyOverScaleFix(scale: Float, overScale: Float): Float {
+        var scale = scale
+        var overScale = overScale
+        if (overScale == 1f) {
+            return scale
         }
 
-        //
-        if (mOverScale > 1) {
-            mOverScale = 1f / mOverScale
+        if (overScale > 1) {
+            overScale = 1f / overScale
         }
 
-        var wentOverScaleRatio = (mOverScale - MAXIMUM_OVER_SCALE) / (1 - MAXIMUM_OVER_SCALE)
+        var wentOverScaleRatio = (overScale - MAXIMUM_OVER_SCALE) / (1 - MAXIMUM_OVER_SCALE)
 
-        if (wentOverScaleRatio < 0) {
+        if (wentOverScaleRatio < 0f) {
             wentOverScaleRatio = 0f
         }
 
-        mScaleFactor *= wentOverScaleRatio + (1 - wentOverScaleRatio) / scaleFactor
+        // 1 -> scale , 0 -> 1
+        // scale * f(1) = scale
+        // scale * f(0) = 1
 
-        return scaleFactor
+        // f(1) = 1
+        // f(0) = 1/scale
+
+        scale *= wentOverScaleRatio + (1 - wentOverScaleRatio) / scale
+
+        return scale
     }
 
     /**
@@ -601,16 +607,15 @@ class ImageCropperView : View {
      * 1.5 / 0.83 = 1.8
      */
     private fun measureOverScale(): Float {
-        if (drawableImageScale < 0.8f) {
-            Log.e("ONE", "ONE " + drawableImageScale)
-            return drawableImageScale / 0.8f
+        return if (drawableImageScale < 0.8) {
+            //Log.e("one ","mDrawableScale " + " - " + minimumAllowedScale);
+            drawableImageScale / 0.8f
+        } else if (drawableImageScale > 3.0) {
+            //Log.e("two ","mDrawableScale " + " - " + maximumAllowedScale);
+            drawableImageScale / 3.0f
+        } else {
+            1f
         }
-
-        if (drawableImageScale > 3.4f) {
-            Log.e("TWO", "TWO " + drawableImageScale)
-            return drawableImageScale / 0.8f
-        }
-        return 1f
     }
 
     /**
