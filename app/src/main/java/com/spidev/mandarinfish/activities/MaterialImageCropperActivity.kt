@@ -45,14 +45,14 @@ class MaterialImageCropperActivity : AppCompatActivity() {
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
         val quality = intent.extras[Constants.EXTRA_OUTPUT_QUALITY]
 
-        Log.e("x-sourceUri ", "$sourceUri")
-        Log.e("x-destinationUri ", "$destinationUri")
-        Log.e("x-preferredRatio ", "$preferredRatio")
-        Log.e("x-minimunRatio ", "$minimunRatio")
-        Log.e("x-maximunRatio ", "$maximunRatio")
-        Log.e("x-widthSpecification ", "$widthSpecification")
-        Log.e("x-heightSpecification ", "$heightSpecification")
-        Log.e("x-quality ", "$quality")
+//        Log.e("x-sourceUri ", "$sourceUri")
+//        Log.e("x-destinationUri ", "$destinationUri")
+//        Log.e("x-preferredRatio ", "$preferredRatio")
+//        Log.e("x-minimunRatio ", "$minimunRatio")
+//        Log.e("x-maximunRatio ", "$maximunRatio")
+//        Log.e("x-widthSpecification ", "$widthSpecification")
+//        Log.e("x-heightSpecification ", "$heightSpecification")
+//        Log.e("x-quality ", "$quality")
 
 
         //micPicture.crop(widthSpecification, heightSpecification)
