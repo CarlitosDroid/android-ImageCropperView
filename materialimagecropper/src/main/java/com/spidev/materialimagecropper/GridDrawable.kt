@@ -20,16 +20,16 @@ class GridDrawable : Drawable() {
     private val mAnimator = ValueAnimator()
 
     //Paint for drawing the line and line border
-    private var mLinePaint = Paint()
+    var mLinePaint = Paint()
     private var mLineBorderPaint = Paint()
 
     //Properties for grid's line
     private val LINE_COLOR = Color.WHITE
-    private val LINE_STROKE_WIDTH = 20f
+    private val LINE_STROKE_WIDTH = 1f
 
     //Properties for grid line border
     private val LINE_BORDER_COLOR = Color.RED
-    private val LINE_BORDER_STROKE_WIDTH = 20f
+    private val LINE_BORDER_STROKE_WIDTH = 1f
 
     private var mAlpha = 1f
 
@@ -57,8 +57,13 @@ class GridDrawable : Drawable() {
             mLinePaint.alpha = Math.round(mAlpha * 255)
             invalidateSelf()
         }
-        mAnimator.interpolator = LinearInterpolator()
-        mAnimator.start()
+        //mAnimator.interpolator = LinearInterpolator()
+        //mAnimator.start()
+    }
+
+    override fun setBounds(bounds: Rect?) {
+        super.setBounds(bounds)
+        invalidateSelf()
     }
 
     override fun draw(canvas: Canvas?) {
@@ -75,29 +80,36 @@ class GridDrawable : Drawable() {
         //LogUtil.e(TAG, "height  $height")
         //Basically bounds.left, bounds.right, bounds.top, bounds.bottom are the coordinates*/
 
+        val startXFirstVerticalLine = bounds.left.toFloat() + width / 3
+        val startXSecondVerticalLine = startXFirstVerticalLine + width / 3
+        val startYFirstHorizontalLine = bounds.top.toFloat() + height / 3
+        val startYSecondHorizontalLine = startYFirstHorizontalLine + height / 3
+
         val thirdOfTheWidth = width / 3
         val thirdOfTheHeight = height / 3
 
 
-        canvas?.drawLine(200f,0f,200f,500f, mLineBorderPaint)
-        //LogUtil.e(TAG, "thirdOfTheWidth  $thirdOfTheWidth")
-        //LogUtil.e(TAG, "thirdOfTheHeight  $thirdOfTheHeight")
         //Drawing borders of the first vertical line
-        //canvas?.drawLine(thirdOfTheWidth.toFloat() - LINE_STROKE_WIDTH / 2, 0f, thirdOfTheWidth.toFloat() - LINE_STROKE_WIDTH / 2, height.toFloat(), mLineBorderPaint)
-        /*canvas?.drawLine(thirdOfTheWidth.toFloat() + LINE_STROKE_WIDTH / 2, 0f, thirdOfTheWidth.toFloat() + LINE_STROKE_WIDTH / 2, height.toFloat(), mLineBorderPaint)
+        canvas?.drawLine(startXFirstVerticalLine - 1, bounds.top.toFloat(), startXFirstVerticalLine - 1, bounds.bottom.toFloat(), mLineBorderPaint)
+        canvas?.drawLine(startXFirstVerticalLine + 1, bounds.top.toFloat(), startXFirstVerticalLine + 1, bounds.bottom.toFloat(), mLineBorderPaint)
 
         //Drawing borders of the second vertical line
-        canvas?.drawLine((thirdOfTheWidth * 2).toFloat() - LINE_STROKE_WIDTH / 2, 0f, (thirdOfTheWidth * 2).toFloat() - LINE_STROKE_WIDTH / 2, height.toFloat(), mLineBorderPaint)
-        canvas?.drawLine((thirdOfTheWidth * 2).toFloat() + LINE_STROKE_WIDTH / 2, 0f, (thirdOfTheWidth * 2).toFloat() + LINE_STROKE_WIDTH / 2, height.toFloat(), mLineBorderPaint)
+        canvas?.drawLine(startXSecondVerticalLine - 1, bounds.top.toFloat(), startXSecondVerticalLine - 1, bounds.bottom.toFloat(), mLineBorderPaint)
+        canvas?.drawLine(startXSecondVerticalLine + 1, bounds.top.toFloat(), startXSecondVerticalLine + 1, bounds.bottom.toFloat(), mLineBorderPaint)
 
         //Drawing borders of the first horizontal line
-        canvas?.drawLine(0f, thirdOfTheHeight.toFloat() - LINE_STROKE_WIDTH / 2, width.toFloat(), thirdOfTheHeight.toFloat() - LINE_STROKE_WIDTH / 2, mLineBorderPaint)
-        canvas?.drawLine(0f, thirdOfTheHeight.toFloat() + LINE_STROKE_WIDTH / 2, width.toFloat(), thirdOfTheHeight.toFloat() + LINE_STROKE_WIDTH / 2, mLineBorderPaint)
+        canvas?.drawLine(bounds.left.toFloat(), startYFirstHorizontalLine - 1, bounds.right.toFloat(), startYFirstHorizontalLine - 1, mLineBorderPaint)
+        canvas?.drawLine(bounds.left.toFloat(), startYFirstHorizontalLine + 1, bounds.right.toFloat(), startYFirstHorizontalLine + 1, mLineBorderPaint)
 
         //Drawing borders of the second horizontal line
-        canvas?.drawLine(0f, (thirdOfTheHeight * 2).toFloat() - LINE_STROKE_WIDTH / 2, width.toFloat(), (thirdOfTheHeight * 2).toFloat() - LINE_STROKE_WIDTH / 2, mLineBorderPaint)
-        canvas?.drawLine(0f, (thirdOfTheHeight * 2).toFloat() + LINE_STROKE_WIDTH / 2, width.toFloat(), (thirdOfTheHeight * 2).toFloat() + LINE_STROKE_WIDTH / 2, mLineBorderPaint)
+        canvas?.drawLine(bounds.left.toFloat(), startYSecondHorizontalLine - 1, bounds.right.toFloat(), startYSecondHorizontalLine - 1, mLineBorderPaint)
+        canvas?.drawLine(bounds.left.toFloat(), startYSecondHorizontalLine + 1, bounds.right.toFloat(), startYSecondHorizontalLine + 1, mLineBorderPaint)
 
+        //Drawing vertical grid lines
+        canvas?.drawLine(startXFirstVerticalLine, bounds.top.toFloat(), startXFirstVerticalLine, bounds.bottom.toFloat(), mLinePaint)
+
+
+/*
         //Drawing vertical grid lines
         canvas?.drawLine(thirdOfTheWidth.toFloat(), 0f, thirdOfTheWidth.toFloat(), height.toFloat(), mLinePaint)
         canvas?.drawLine((thirdOfTheWidth * 2).toFloat(), 0f, (thirdOfTheWidth * 2).toFloat(), height.toFloat(), mLinePaint)
@@ -116,5 +128,9 @@ class GridDrawable : Drawable() {
 
     override fun setColorFilter(colorFilter: ColorFilter?) {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    fun setCentralLineColor(colorResource: Int) {
+        mLinePaint.color = colorResource
     }
 }

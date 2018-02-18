@@ -107,19 +107,17 @@ class ImageCropperView : View {
         drawableImageWidth = bitmap.width.toFloat()
         drawableImageHeight = bitmap.height.toFloat()
 
-        Log.e("VIEW-WIDTH"," " + viewWidth)
-        Log.e("VIEW-HEIGHT"," " + viewHeight)
-        Log.e("IMAGE-WIDTH"," " + drawableImageWidth)
-        Log.e("IMAGE-HEIGHT"," " + drawableImageHeight)
-        Log.e("IMAGE-SCALE"," " + drawableImageScale)
+        Log.e("VIEW-WIDTH", " " + viewWidth)
+        Log.e("VIEW-HEIGHT", " " + viewHeight)
+        Log.e("IMAGE-WIDTH", " " + drawableImageWidth)
+        Log.e("IMAGE-HEIGHT", " " + drawableImageHeight)
+        Log.e("IMAGE-SCALE", " " + drawableImageScale)
         bitmapDrawable = BitmapDrawable(context.resources, bitmap)
         placeScaledDrawableImageInTheCenter()
         refreshDrawable()
     }
 
     private fun refreshDrawable() {
-
-        updateGridDrawable()
         invalidate()
     }
 
@@ -253,6 +251,7 @@ class ImageCropperView : View {
         displayDrawableImage()
 
         bitmapDrawable?.setBounds(rectF.left.toInt(), rectF.top.toInt(), rectF.right.toInt(), rectF.bottom.toInt())
+        gridDrawable.setBounds(rectF.left.toInt(), rectF.top.toInt(), rectF.right.toInt(), rectF.bottom.toInt())
         bitmapDrawable?.draw(canvas)
         gridDrawable.draw(canvas)
     }
@@ -319,7 +318,7 @@ class ImageCropperView : View {
 
     fun updateGridDrawable() {
 
-        gridDrawable.setBounds(400, 10, 0, 20)
+        //gridDrawable.setBounds(1200, 10, 0, 20)
         /*if (getImageSizeRatio() == 1f) {
 
         } else if (getImageSizeRatio() < 1f) {
@@ -622,7 +621,7 @@ class ImageCropperView : View {
         mDisplayDrawableLeft -= overScrollX * animatedValue
         mDisplayDrawableTop -= overScrollY * animatedValue
 
-       // Log.e("mDisplayDrawableTop ","mDisplayDrawableTop " +mDisplayDrawableTop)
+        // Log.e("mDisplayDrawableTop ","mDisplayDrawableTop " +mDisplayDrawableTop)
         //(2)We return to the initial scale of the drawable image*
         val overScale = measureOverScale()
         val targetScale = drawableImageScale / overScale
@@ -631,6 +630,10 @@ class ImageCropperView : View {
         setScaleKeepingFocus(newScale, mScaleFocusX, mScaleFocusY)
 
         invalidate()
+    }
+
+    fun setLineColor(colorResource: Int) {
+        gridDrawable.mLinePaint.color = colorResource
     }
 }
 

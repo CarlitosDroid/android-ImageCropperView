@@ -5,6 +5,7 @@ import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.provider.MediaStore
 import android.support.design.widget.Snackbar
+import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.GestureDetector
@@ -78,6 +79,7 @@ class MaterialImageCropperActivity : AppCompatActivity() {
                 Log.e("onBitmapLoaded", "onBitmapLoaded")
                 //ivFinal.setImageBitmap(bitmap)
                 micPicture.setImageBitmap(bitmap)
+                micPicture.setLineColor(ContextCompat.getColor(applicationContext, R.color.colorPrimary))
             }
         }
 
@@ -94,10 +96,6 @@ class MaterialImageCropperActivity : AppCompatActivity() {
             ImagesUtil.showExifTag(this, sourceUri)
         }
     }
-
-
-
-
 
 
 }
