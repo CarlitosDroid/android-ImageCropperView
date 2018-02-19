@@ -4,8 +4,6 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
-import android.net.Uri
-import android.provider.MediaStore
 import android.util.AttributeSet
 import android.util.Log
 import android.view.GestureDetector
@@ -17,6 +15,7 @@ import android.widget.Toast
 
 /**
  * Created by Carlos Leonardo Camilo Vargas Huamán on 8/13/17.
+ *
  */
 
 class ImageCropperView : View {
@@ -183,7 +182,7 @@ class ImageCropperView : View {
                     MeasureSpec.AT_MOST -> {
                         Log.e("x-HEIGHT AT_MOST", "HEIGHT AT_MOST")
 
-                        var specRatio = parentWidthSize.toFloat() / parentHeightSize.toFloat()
+                        val specRatio = parentWidthSize.toFloat() / parentHeightSize.toFloat()
                         Log.e("x-DEFAULT_RATIO", "DEFAULT_RATIO $DEFAULT_RATIO")
                         Log.e("x-DEFAULT_RATIO", "DEFAULT_RATIO $specRatio")
 
@@ -243,26 +242,29 @@ class ImageCropperView : View {
          * The third parameter (right) is the width of the rectangle
          * The fourth paramter (bottom) is the heigth of the rectangle
          */
-        //mDrawable?.setBounds(50, 50, 600, 500)
-        /**
-         * VER LA DIFERENCIA ENTRE RECTF Y RECT - ---> porque setBounds tambien recive un rectangulo
-         */
 
-        displayDrawableImage()
+        updateBitmapDrawable()
+        displayBitmapDrawable()
+        displayGridDrawable()
 
-        bitmapDrawable?.setBounds(rectF.left.toInt(), rectF.top.toInt(), rectF.right.toInt(), rectF.bottom.toInt())
-        gridDrawable.setBounds(rectF.left.toInt(), rectF.top.toInt(), rectF.right.toInt(), rectF.bottom.toInt())
         bitmapDrawable?.draw(canvas)
         gridDrawable.draw(canvas)
     }
 
-    private fun displayDrawableImage() {
-
+    private fun updateBitmapDrawable() {
         rectF.left = mDisplayDrawableLeft
         rectF.top = mDisplayDrawableTop
-
         rectF.right = rectF.left + getScaledDrawableImageWidth(drawableImageWidth, drawableImageScale)
         rectF.bottom = rectF.top + getScaledDrawableImageHeight(drawableImageHeight, drawableImageScale)
+    }
+
+    private fun displayBitmapDrawable() {
+        bitmapDrawable?.setBounds(rectF.left.toInt(), rectF.top.toInt(), rectF.right.toInt(), rectF.bottom.toInt())
+    }
+
+    private fun displayGridDrawable() {
+        rectF.intersect(0f, 0f, viewWidth, viewHeight)
+        gridDrawable.setBounds(rectF.left.toInt(), rectF.top.toInt(), rectF.right.toInt(), rectF.bottom.toInt())
     }
 
     /**
@@ -312,21 +314,6 @@ class ImageCropperView : View {
      */
     private fun getScaledDrawableImageHeight(drawableImageHeight: Float, drawableImageScale: Float) =
             drawableImageHeight * drawableImageScale
-
-    // 90 -> ancho < alto
-    // 0 -> ancho > alto
-
-    fun updateGridDrawable() {
-
-        //gridDrawable.setBounds(1200, 10, 0, 20)
-        /*if (getImageSizeRatio() == 1f) {
-
-        } else if (getImageSizeRatio() < 1f) {
-            gridDrawable.setBounds(rectF.left.toInt(), Math.abs(rectF.top.toInt()), rectF.right.toInt(), rectF.bottom.toInt())
-        } else {
-            gridDrawable.setBounds(Math.abs(rectF.left.toInt()), rectF.top.toInt(), rectF.right.toInt(), rectF.bottom.toInt())
-        }*/
-    }
 
     /**
      * Get the ratio of the image's size, the ratio is basically the relation
@@ -539,14 +526,14 @@ class ImageCropperView : View {
      * This method keep the focus of the drawable image while it's scaling
      */
     private fun setScaleKeepingFocus(scale: Float, focusX: Float, focusY: Float) {
-        displayDrawableImage()
+        updateBitmapDrawable()
 
         val focusRatioX = (focusX - rectF.left) / rectF.width()
         val focusRatioY = (focusY - rectF.top) / rectF.height()
 
         drawableImageScale = scale
 
-        displayDrawableImage()
+        updateBitmapDrawable()
 
         val scaledFocusX = rectF.left + focusRatioX * rectF.width()
         val scaledFocusY = rectF.top + focusRatioY * rectF.height()
@@ -560,18 +547,18 @@ class ImageCropperView : View {
     /**
      * Returning the scale
      */
-    private fun applyOverScaleFix(scaleFactor: Float, overScale: Float): Float {
+    private fun applyOverScaleFix(scaleFactor: Float, oveScale: Float): Float {
         var mScaleFactor = scaleFactor
-        var overScale = overScale
-        if (overScale == 1f) {
+        var newOverScale = oveScale
+        if (newOverScale == 1f) {
             return mScaleFactor
         }
 
-        if (overScale > 1) {
-            overScale = 1f / overScale
+        if (newOverScale > 1) {
+            newOverScale = 1f / newOverScale
         }
 
-        var wentOverScaleRatio = (overScale - MAXIMUM_OVER_SCALE) / (1 - MAXIMUM_OVER_SCALE)
+        var wentOverScaleRatio = (newOverScale - MAXIMUM_OVER_SCALE) / (1 - MAXIMUM_OVER_SCALE)
 
         if (wentOverScaleRatio < 0f) {
             wentOverScaleRatio = 0f
@@ -596,12 +583,10 @@ class ImageCropperView : View {
      * 1.5 / 0.83 = 1.8
      */
     private fun measureOverScale(): Float {
-        return if (drawableImageScale < MINIMUM_ALLOWED_SCALE) {
-            drawableImageScale / MINIMUM_ALLOWED_SCALE
-        } else if (drawableImageScale > MAXIMUM_ALLOWED_SCALE) {
-            drawableImageScale / MAXIMUM_ALLOWED_SCALE
-        } else {
-            1f
+        return when {
+            drawableImageScale < MINIMUM_ALLOWED_SCALE -> drawableImageScale / MINIMUM_ALLOWED_SCALE
+            drawableImageScale > MAXIMUM_ALLOWED_SCALE -> drawableImageScale / MAXIMUM_ALLOWED_SCALE
+            else -> 1f
         }
     }
 

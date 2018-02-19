@@ -107,16 +107,10 @@ class GridDrawable : Drawable() {
 
         //Drawing vertical grid lines
         canvas?.drawLine(startXFirstVerticalLine, bounds.top.toFloat(), startXFirstVerticalLine, bounds.bottom.toFloat(), mLinePaint)
-
-
-/*
-        //Drawing vertical grid lines
-        canvas?.drawLine(thirdOfTheWidth.toFloat(), 0f, thirdOfTheWidth.toFloat(), height.toFloat(), mLinePaint)
-        canvas?.drawLine((thirdOfTheWidth * 2).toFloat(), 0f, (thirdOfTheWidth * 2).toFloat(), height.toFloat(), mLinePaint)
+        canvas?.drawLine(startXSecondVerticalLine, bounds.top.toFloat(), startXSecondVerticalLine, bounds.bottom.toFloat(), mLinePaint)
         //Drawing horizontal grid lines
-        canvas?.drawLine(0f, thirdOfTheHeight.toFloat(), width.toFloat(), thirdOfTheHeight.toFloat(), mLinePaint)
-        canvas?.drawLine(0f, (thirdOfTheHeight * 2).toFloat(), width.toFloat(), (thirdOfTheHeight * 2).toFloat(), mLinePaint)*/
-
+        canvas?.drawLine(bounds.left.toFloat(), startYFirstHorizontalLine, bounds.right.toFloat(), startYFirstHorizontalLine, mLinePaint)
+        canvas?.drawLine(bounds.left.toFloat(), startYSecondHorizontalLine, bounds.right.toFloat(), startYSecondHorizontalLine, mLinePaint)
     }
 
     override fun setAlpha(alpha: Int) {
