@@ -13,6 +13,11 @@ import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.widget.Toast
+import android.opengl.ETC1.getHeight
+import android.opengl.ETC1.getWidth
+import android.graphics.Bitmap
+
+
 
 /**
  * Created by Carlos Leonardo Camilo Vargas Huamán on 8/13/17.
@@ -99,7 +104,7 @@ class ImageCropperView : View {
 
     private fun initialize(attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int) {
         val a = context.obtainStyledAttributes(attrs, R.styleable.MaterialImageCropper, defStyleAttr, defStyleRes)
-        micLineBorderColor = a.getColor(R.styleable.MaterialImageCropper_micLineBorderColor, Color.GREEN)
+        micLineBorderColor = a.getColor(R.styleable.MaterialImageCropper_micLineBorderColor, Color.RED)
         micLineColor = a.getColor(R.styleable.MaterialImageCropper_micLineColor, Color.GRAY)
         micScaleType = a.getInteger(R.styleable.MaterialImageCropper_micScaleType, DEFAULT_CENTER_SCALE_TYPE)
         a.recycle()

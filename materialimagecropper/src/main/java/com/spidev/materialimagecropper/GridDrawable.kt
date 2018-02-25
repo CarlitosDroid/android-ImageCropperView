@@ -46,12 +46,10 @@ class GridDrawable : Drawable() {
     init {
         linePaint = Paint()
         linePaint.style = Paint.Style.STROKE
-        linePaint.color = Color.GRAY
         linePaint.strokeWidth = LINE_STROKE_WIDTH
 
         lineBorderPaint = Paint()
         lineBorderPaint.style = Paint.Style.STROKE
-        lineBorderPaint.color = Color.GREEN
         lineBorderPaint.strokeWidth = LINE_BORDER_STROKE_WIDTH
 
         valueAnimator.duration = 300

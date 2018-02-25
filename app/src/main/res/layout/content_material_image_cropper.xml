@@ -13,5 +13,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        app:micLineBorderColor="@color/md_green_500" />
+        app:micLineBorderColor="@color/md_green_500"
+        app:micLineColor="@color/md_black_1000"/>
 </FrameLayout>

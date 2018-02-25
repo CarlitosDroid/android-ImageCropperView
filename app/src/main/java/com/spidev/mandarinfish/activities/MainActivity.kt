@@ -22,11 +22,10 @@ import android.support.v4.content.FileProvider
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.widget.Toast
 import com.spidev.mandarinfish.BuildConfig
 import com.spidev.mandarinfish.R
-import com.spidev.mandarinfish.commons.Constants
+import com.spidev.mandarinfish.commons.REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE
 import com.spidev.mandarinfish.fragments.CameraDialogFragment
 import kotlinx.android.synthetic.main.content_main.*
 import java.io.IOException
@@ -34,15 +33,13 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 
-const val REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE: Int = 1
-
 class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationaleListener {
     override fun onAccept() {
         requestThePermissions()
     }
 
-    var mCurrentPhotoPath: String = ""
-    var cameraDialogFragment: CameraDialogFragment? = null
+    private var mCurrentPhotoPath: String = ""
+    private var cameraDialogFragment: CameraDialogFragment? = null
 
     private var galleryImageUri: Uri? = null
 
@@ -74,22 +71,10 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
         }
     }
 
-    private fun startTestActivity(sourceUri: Uri, destinationUri: Uri) {
-        val intent = Intent(this, TestActivity::class.java)
-        intent.data = sourceUri
-        startActivity(intent)
-    }
-
     private fun startMaterialImageCropperActivity(sourceUri: Uri, destinationUri: Uri) {
         val intent = Intent(this, MaterialImageCropperActivity::class.java)
         intent.data = sourceUri
         intent.putExtra(MediaStore.EXTRA_OUTPUT, destinationUri)
-        intent.putExtra(Constants.EXTRA_PREFERRED_RATIO, Constants.DEFAULT_RATIO)
-        intent.putExtra(Constants.EXTRA_MINIMUN_RATIO, Constants.DEFAULT_MINIMUN_RATIO)
-        intent.putExtra(Constants.EXTRA_MAXIMUN_RATIO, Constants.DEFAULT_MAXIMUN_RATIO)
-        intent.putExtra(Constants.EXTRA_WIDTH_SPECIFICATION, View.MeasureSpec.makeMeasureSpec(720, View.MeasureSpec.AT_MOST))
-        intent.putExtra(Constants.EXTRA_HEIGHT_SPECIFICATION, View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
-        intent.putExtra(Constants.EXTRA_OUTPUT_QUALITY, 50)
         startActivity(intent)
     }
 
@@ -139,7 +124,7 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
 
     }
 
-    fun createPublicImageFile(): File {
+    private fun createPublicImageFile(): File {
         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
         val imageFileName = "JPEG_" + timeStamp + "_"
 
@@ -154,7 +139,7 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
         return imageFile
     }
 
-    fun createPrivateImageFile(): File {
+    private fun createPrivateImageFile(): File {
         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
         val imageFileName = "JPEG_" + timeStamp + "_"
 
@@ -169,7 +154,7 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
         return image
     }
 
-    fun setPic() {
+    private fun setPic() {
         //Get the dimensions of the View
         val targetW: Int = imgPhoto.width
         val targetH: Int = imgPhoto.height
@@ -182,7 +167,7 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
         val photoH: Int = bmOptions.outHeight
 
         //Determine how much to scale down the image
-        var scaleFactor: Int = Math.min(photoW / targetW, photoH / targetH)
+        val scaleFactor: Int = Math.min(photoW / targetW, photoH / targetH)
 
         //Decode the image file into a Bitmap sized to fill the View
         bmOptions.inJustDecodeBounds = false
@@ -196,7 +181,7 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
 
     }
 
-    fun getRequestPermission() {
+    private fun getRequestPermission() {
         Log.e("z-getRequestPermis***", "z-getRequestPermis***")
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -242,7 +227,7 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
         }
     }
 
-    fun requestThePermissions() {
+    private fun requestThePermissions() {
         val permissionArrayString = arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
         ActivityCompat.requestPermissions(this,
@@ -250,7 +235,7 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
                 REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE)
     }
 
-    fun intentToImageCapture() {
+    private fun intentToImageCapture() {
         val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         //Ensure that there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(packageManager) != null) {
