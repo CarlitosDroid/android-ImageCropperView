@@ -5,6 +5,7 @@ import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.provider.MediaStore
 import android.support.design.widget.Snackbar
+import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.GestureDetector
@@ -14,6 +15,7 @@ import android.widget.Toast
 import com.spidev.mandarinfish.R
 import com.spidev.mandarinfish.commons.Constants
 import com.spidev.mandarinfish.util.ImagesUtil
+import com.spidev.materialimagecropper.ImageCropperView
 import com.spidev.materialimagecropper.LogUtil
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.Target
@@ -68,6 +70,7 @@ class MaterialImageCropperActivity : AppCompatActivity() {
 
                 }
                 //ivFinal.setImageDrawable(placeHolderDrawable)
+                val asdf = ImageCropperView(baseContext)
             }
 
             override fun onBitmapFailed(errorDrawable: Drawable?) {
@@ -78,6 +81,8 @@ class MaterialImageCropperActivity : AppCompatActivity() {
                 Log.e("onBitmapLoaded", "onBitmapLoaded")
                 //ivFinal.setImageBitmap(bitmap)
                 micPicture.setImageBitmap(bitmap)
+                micPicture.setLineColor(R.color.md_black_1000)
+                micPicture.setBorderLineColor(R.color.md_orange_900)
             }
         }
 
@@ -94,10 +99,6 @@ class MaterialImageCropperActivity : AppCompatActivity() {
             ImagesUtil.showExifTag(this, sourceUri)
         }
     }
-
-
-
-
 
 
 }
