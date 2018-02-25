@@ -4,6 +4,7 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.util.Log
 import android.view.GestureDetector
@@ -78,6 +79,14 @@ class ImageCropperView : View {
     private var mScaleFocusX = 0f
     private var mScaleFocusY = 0f
 
+    private var gridRectF = RectF()
+
+    private var DEFAULT_CENTER_SCALE_TYPE = 0
+
+    private var micLineBorderColor = 0
+    private var micLineColor = 0
+    private var micScaleType = 0
+
     constructor(context: Context) : super(context)
 
     constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {
@@ -89,6 +98,15 @@ class ImageCropperView : View {
     }
 
     private fun initialize(attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int) {
+        val a = context.obtainStyledAttributes(attrs, R.styleable.MaterialImageCropper, defStyleAttr, defStyleRes)
+        micLineBorderColor = a.getColor(R.styleable.MaterialImageCropper_micLineBorderColor, Color.GREEN)
+        micLineColor = a.getColor(R.styleable.MaterialImageCropper_micLineColor, Color.GRAY)
+        micScaleType = a.getInteger(R.styleable.MaterialImageCropper_micScaleType, DEFAULT_CENTER_SCALE_TYPE)
+        a.recycle()
+
+        setLineColor(micLineColor)
+        setBorderLineColor(micLineBorderColor)
+
         mAnimator = ValueAnimator()
         mAnimator!!.duration = 400
         mAnimator!!.setFloatValues(0f, 1f)
@@ -96,6 +114,27 @@ class ImageCropperView : View {
         mAnimator!!.addUpdateListener(onSettleAnimatorUpdateListener)
         gestureDetector = GestureDetector(context, onGestureListener)
         scaleGestureDetector = ScaleGestureDetector(context, onScaleGestureListener)
+        gridDrawable.callback = drawableCallback
+    }
+
+    /**
+     * This method is necessary if we want to create an animated drawable that extends {@Drawable}
+     * Please read the official documentation
+     * https://developer.android.com/reference/android/graphics/drawable/Drawable.Callback.html
+     */
+    private var drawableCallback = object : Drawable.Callback {
+        override fun unscheduleDrawable(who: Drawable?, what: Runnable?) {
+            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        }
+
+        override fun scheduleDrawable(who: Drawable?, what: Runnable?, `when`: Long) {
+            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        }
+
+        override fun invalidateDrawable(who: Drawable?) {
+            invalidate()
+        }
+
     }
 
     /**
@@ -234,19 +273,8 @@ class ImageCropperView : View {
      */
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-        /**
-         * Specify a bounding rectangle for the Drawable. This is where the drawable
-         * will draw when its draw() method is called.
-         * The first parameter (left) is a margin to left
-         * The second parameter (top) is a margin to top
-         * The third parameter (right) is the width of the rectangle
-         * The fourth paramter (bottom) is the heigth of the rectangle
-         */
-
         updateBitmapDrawable()
         displayBitmapDrawable()
-        displayGridDrawable()
-
         bitmapDrawable?.draw(canvas)
         gridDrawable.draw(canvas)
     }
@@ -262,9 +290,15 @@ class ImageCropperView : View {
         bitmapDrawable?.setBounds(rectF.left.toInt(), rectF.top.toInt(), rectF.right.toInt(), rectF.bottom.toInt())
     }
 
-    private fun displayGridDrawable() {
-        rectF.intersect(0f, 0f, viewWidth, viewHeight)
-        gridDrawable.setBounds(rectF.left.toInt(), rectF.top.toInt(), rectF.right.toInt(), rectF.bottom.toInt())
+    /**
+     * This method draw the grid as a intersection between the view rect and the image drawable rect.
+     * We cannot call this method directly in the onDraw() method because {@link GridDrawable.setBounds}
+     * call an animator and internally call the {@link GridDrawable.invalidateSelf()} which call onDraw() again.
+     */
+    private fun displayGridDrawable(rectF: RectF) {
+        gridRectF.set(rectF.left, rectF.top, rectF.right, rectF.bottom)
+        gridRectF.intersect(0f, 0f, viewWidth, viewHeight)
+        gridDrawable.setBounds(gridRectF.left.toInt(), gridRectF.top.toInt(), gridRectF.right.toInt(), gridRectF.bottom.toInt())
     }
 
     /**
@@ -453,7 +487,7 @@ class ImageCropperView : View {
     }
 
     /**
-     * Listener for handling movement of the user on the drawable image
+     * Listener to handle the movement of the user's finger on the drawable image.
      */
     private var onGestureListener = object : GestureDetector.OnGestureListener {
 
@@ -481,6 +515,8 @@ class ImageCropperView : View {
 
             mDisplayDrawableLeft += mDistanceX
             mDisplayDrawableTop += mDistanceY
+
+            displayGridDrawable(rectF)
 
             invalidate()
             return true
@@ -613,13 +649,18 @@ class ImageCropperView : View {
         val newScale = (1 - animatedValue) * drawableImageScale + animatedValue * targetScale
 
         setScaleKeepingFocus(newScale, mScaleFocusX, mScaleFocusY)
-
+        displayGridDrawable(rectF)
         invalidate()
     }
 
-    fun setLineColor(colorResource: Int) {
-        gridDrawable.mLinePaint.color = colorResource
+    fun setLineColor(color: Int) {
+        gridDrawable.linePaint.color = color
     }
+
+    fun setBorderLineColor(color: Int) {
+        gridDrawable.lineBorderPaint.color = color
+    }
+
 }
 
 

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="MaterialImageCropper">
+        <attr name="micLineBorderColor" format="color|reference" />
+        <attr name="micLineColor" format="color|reference" />
+        <attr name="micScaleType">
+            <enum name="center" value="0" />
+            <enum name="adjust" value="1" />
+        </attr>
+    </declare-styleable>
+</resources>

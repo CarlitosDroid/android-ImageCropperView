@@ -15,6 +15,7 @@ import android.widget.Toast
 import com.spidev.mandarinfish.R
 import com.spidev.mandarinfish.commons.Constants
 import com.spidev.mandarinfish.util.ImagesUtil
+import com.spidev.materialimagecropper.ImageCropperView
 import com.spidev.materialimagecropper.LogUtil
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.Target
@@ -69,6 +70,7 @@ class MaterialImageCropperActivity : AppCompatActivity() {
 
                 }
                 //ivFinal.setImageDrawable(placeHolderDrawable)
+                val asdf = ImageCropperView(baseContext)
             }
 
             override fun onBitmapFailed(errorDrawable: Drawable?) {
@@ -79,7 +81,8 @@ class MaterialImageCropperActivity : AppCompatActivity() {
                 Log.e("onBitmapLoaded", "onBitmapLoaded")
                 //ivFinal.setImageBitmap(bitmap)
                 micPicture.setImageBitmap(bitmap)
-                micPicture.setLineColor(ContextCompat.getColor(applicationContext, R.color.colorPrimary))
+                micPicture.setLineColor(R.color.md_black_1000)
+                micPicture.setBorderLineColor(R.color.md_orange_900)
             }
         }
 
