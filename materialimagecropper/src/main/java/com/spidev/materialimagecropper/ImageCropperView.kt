@@ -117,6 +117,14 @@ class ImageCropperView : View {
         gridDrawable.callback = drawableCallback
     }
 
+    fun setLineColor(color: Int) {
+        gridDrawable.linePaint.color = color
+    }
+
+    fun setBorderLineColor(color: Int) {
+        gridDrawable.lineBorderPaint.color = color
+    }
+
     /**
      * This method is necessary if we want to create an animated drawable that extends {@Drawable}
      * Please read the official documentation
@@ -652,15 +660,6 @@ class ImageCropperView : View {
         displayGridDrawable(rectF)
         invalidate()
     }
-
-    fun setLineColor(color: Int) {
-        gridDrawable.linePaint.color = color
-    }
-
-    fun setBorderLineColor(color: Int) {
-        gridDrawable.lineBorderPaint.color = color
-    }
-
 }
 
 

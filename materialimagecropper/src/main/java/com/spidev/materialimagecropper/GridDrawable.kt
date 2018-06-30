@@ -23,44 +23,39 @@ class GridDrawable : Drawable() {
     private val TAG = GridDrawable::class.java.simpleName
 
     /**
-     * Animator for handling fade in and fade out animations
-     */
-    private val valueAnimator = ValueAnimator()
-
-    /**
      * Configuring alpha animation of the grid(0-255)
      */
     private var mAlpha = 1f
 
     /**
-     * Paint for drawing the line and line border
+     * Lines and border lines paint for drawing the grid
      */
-    var linePaint = Paint()
-    var lineBorderPaint = Paint()
+    var linePaint = Paint().apply {
+        style = Paint.Style.STROKE
+        color = Color.GRAY
+        strokeWidth = LINE_STROKE_WIDTH
+    }
+    var lineBorderPaint = Paint().apply {
+        style = Paint.Style.STROKE
+        color = Color.GREEN
+        strokeWidth = LINE_BORDER_STROKE_WIDTH
+    }
 
     private val animatorUpdateListener = ValueAnimator.AnimatorUpdateListener { animation ->
         mAlpha = animation?.animatedValue as Float
         invalidateSelf()
     }
 
-    init {
-        linePaint = Paint()
-        linePaint.style = Paint.Style.STROKE
-        linePaint.color = Color.GRAY
-        linePaint.strokeWidth = LINE_STROKE_WIDTH
-
-        lineBorderPaint = Paint()
-        lineBorderPaint.style = Paint.Style.STROKE
-        lineBorderPaint.color = Color.GREEN
-        lineBorderPaint.strokeWidth = LINE_BORDER_STROKE_WIDTH
-
-        valueAnimator.duration = 300
-        valueAnimator.startDelay = 300
-        valueAnimator.setFloatValues(1F, 0F)
-        valueAnimator.addUpdateListener(animatorUpdateListener)
-        valueAnimator.interpolator = LinearInterpolator()
-
-        valueAnimator.start()
+    /**
+     * Animator for handling fade in and fade out animations
+     */
+    private val valueAnimator = ValueAnimator().apply {
+        duration = 300
+        startDelay = 300
+        setFloatValues(1F, 0F)
+        addUpdateListener(animatorUpdateListener)
+        interpolator = LinearInterpolator()
+        start()
     }
 
     override fun setBounds(left: Int, top: Int, right: Int, bottom: Int) {

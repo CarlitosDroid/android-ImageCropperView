@@ -1,0 +1,2 @@
+# Material Image Cropper Library
+
