@@ -3,9 +3,14 @@ package com.spidev.mandarinfish.util
 import android.content.Context
 import android.support.media.ExifInterface
 import android.net.Uri
+import android.os.Environment
+import android.util.Log
 import android.widget.Toast
+import java.io.File
 import java.io.IOException
 import java.io.InputStream
+import java.text.SimpleDateFormat
+import java.util.*
 
 /**
  * Created by carlos on 12/2/17.
@@ -13,6 +18,37 @@ import java.io.InputStream
 class ImagesUtil {
 
     companion object {
+
+        fun createPublicImageFile(): File {
+            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
+            val imageFileName = "JPEG_" + timeStamp + "_"
+
+            //Using the Picture public directory, accessible by all apps
+            val storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+            Log.e("X-PUBLICSTORAGEDIR", "X-PUBLICSTORAGEDIR " + storageDir)
+            val imageFile = File.createTempFile(imageFileName, ".jpg", storageDir)
+
+            /* //Save a file: path for use with ACTION_VIEW intents
+             mCurrentPhotoPath = imageFile.absolutePath
+ */
+            return imageFile
+        }
+
+        fun createPrivateImageFile(context: Context): File {
+            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
+            val imageFileName = "JPEG_" + timeStamp + "_"
+
+            //Using the Picture public directory, accessible by all apps
+            val storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+            Log.e("X-PRIVATESTORAGEDIR", "X-PRIVATESTORAGEDIR " + storageDir)
+            val image = File.createTempFile(imageFileName, ".jpg", storageDir)
+
+            /*//Save a file: path for use with ACTION_VIEW intents
+            mCurrentPhotoPath = image.absolutePath*/
+
+            return image
+        }
+
 
         private fun getInputStreamFromUri(context: Context, uri: Uri): InputStream = context.contentResolver.openInputStream(uri)
 

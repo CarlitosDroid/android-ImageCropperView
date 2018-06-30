@@ -4,26 +4,20 @@ import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.provider.MediaStore
-import android.support.design.widget.Snackbar
-import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import android.view.GestureDetector
-import android.view.MotionEvent
 import android.view.View
-import android.widget.Toast
 import com.spidev.mandarinfish.R
 import com.spidev.mandarinfish.commons.Constants
 import com.spidev.mandarinfish.util.ImagesUtil
 import com.spidev.materialimagecropper.ImageCropperView
-import com.spidev.materialimagecropper.LogUtil
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.Target
 
 import kotlinx.android.synthetic.main.activity_material_image_cropper.*
 import kotlinx.android.synthetic.main.content_main.*
 import kotlinx.android.synthetic.main.content_material_image_cropper.*
-import kotlinx.android.synthetic.main.content_test.*
+
 
 class MaterialImageCropperActivity : AppCompatActivity() {
 
@@ -33,7 +27,6 @@ class MaterialImageCropperActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_material_image_cropper)
         setSupportActionBar(toolbar)
-
 
         val sourceUri = intent.data
 
@@ -99,6 +92,4 @@ class MaterialImageCropperActivity : AppCompatActivity() {
             ImagesUtil.showExifTag(this, sourceUri)
         }
     }
-
-
 }

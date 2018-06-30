@@ -12,7 +12,6 @@ import android.app.Activity
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.os.Environment
 import android.provider.Settings
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
@@ -26,11 +25,9 @@ import com.spidev.mandarinfish.BuildConfig
 import com.spidev.mandarinfish.R
 import com.spidev.mandarinfish.commons.Constants
 import com.spidev.mandarinfish.fragments.AppSettingsDialogFragment
+import com.spidev.mandarinfish.util.ImagesUtil
 import kotlinx.android.synthetic.main.content_main.*
 import java.io.IOException
-
-import java.text.SimpleDateFormat
-import java.util.*
 
 class MainActivity : AppCompatActivity(), AppSettingsDialogFragment.OnCameraRationaleListener {
 
@@ -181,6 +178,41 @@ class MainActivity : AppCompatActivity(), AppSettingsDialogFragment.OnCameraRati
         startActivity(intent)
     }
 
+    private fun intentToImageCapture() {
+        val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        //Ensure that there's a camera activity to handle the intent
+        if (takePictureIntent.resolveActivity(packageManager) != null) {
+            //Create the File where the photo should go
+            var photoFile: File? = null
+            try {
+                photoFile = ImagesUtil.createPublicImageFile()
+
+                //Save a file: path for use with ACTION_VIEW intents
+                mCurrentPhotoPath = photoFile.absolutePath
+
+
+                /** For using createPrivateImageFile() method you only have to change the path in xml/file_paths to your
+                 * private public directory returned by getExternalFilesDir method
+                 */
+            } catch (e: IOException) {
+                // Error ocurred while creating a file
+
+            }
+
+            if (photoFile != null) {
+                val photoURI = FileProvider.getUriForFile(
+                        this,
+                        BuildConfig.APPLICATION_ID,
+                        photoFile)
+
+                Log.e("X-PHOTOURI", "X-PHOTOURI " + photoURI)
+
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+                startActivityForResult(takePictureIntent, REQUEST_TO_CAMERA_GET_FULL_SIZE_IMAGE)
+            }
+        }
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
@@ -192,7 +224,7 @@ class MainActivity : AppCompatActivity(), AppSettingsDialogFragment.OnCameraRati
                 //imgPhoto.rotation = ImagesUtil.getImageOrientation(applicationContext, galleryImageUri).toFloat()
                 imgPhoto.setImageURI(data?.data)
             } else if (resultCode == Activity.RESULT_CANCELED) {
-                Toast.makeText(this, "WAAA", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.select_an_image_at_least), Toast.LENGTH_SHORT).show()
             }
 
             REQUEST_TO_CAMERA_GET_FULL_SIZE_IMAGE -> if (resultCode == Activity.RESULT_OK) {
@@ -200,7 +232,7 @@ class MainActivity : AppCompatActivity(), AppSettingsDialogFragment.OnCameraRati
                 setPic()
 
             } else if (resultCode == Activity.RESULT_CANCELED) {
-
+                Toast.makeText(this, getString(R.string.select_an_image_at_least), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -238,36 +270,6 @@ class MainActivity : AppCompatActivity(), AppSettingsDialogFragment.OnCameraRati
         }
     }
 
-    private fun createPublicImageFile(): File {
-        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
-        val imageFileName = "JPEG_" + timeStamp + "_"
-
-        //Using the Picture public directory, accessible by all apps
-        val storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-        Log.e("X-PUBLICSTORAGEDIR", "X-PUBLICSTORAGEDIR " + storageDir)
-        val imageFile = File.createTempFile(imageFileName, ".jpg", storageDir)
-
-        //Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoPath = imageFile.absolutePath
-
-        return imageFile
-    }
-
-    fun createPrivateImageFile(): File {
-        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
-        val imageFileName = "JPEG_" + timeStamp + "_"
-
-        //Using the Picture public directory, accessible by all apps
-        val storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        Log.e("X-PRIVATESTORAGEDIR", "X-PRIVATESTORAGEDIR " + storageDir)
-        val image = File.createTempFile(imageFileName, ".jpg", storageDir)
-
-        //Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoPath = image.absolutePath
-
-        return image
-    }
-
     private fun setPic() {
         //Get the dimensions of the View
         val targetW: Int = imgPhoto.width
@@ -292,36 +294,5 @@ class MainActivity : AppCompatActivity(), AppSettingsDialogFragment.OnCameraRati
         val bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions)
 
         imgPhoto.setImageBitmap(bitmap)
-
-    }
-
-    private fun intentToImageCapture() {
-        val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        //Ensure that there's a camera activity to handle the intent
-        if (takePictureIntent.resolveActivity(packageManager) != null) {
-            //Create the File where the photo should go
-            var photoFile: File? = null
-            try {
-                photoFile = createPublicImageFile()
-                /** For using createPrivateImageFile() method you only have to change the path in xml/file_paths to your
-                 * private public directory returned by getExternalFilesDir method
-                 */
-            } catch (e: IOException) {
-                // Error ocurred while creating a file
-
-            }
-
-            if (photoFile != null) {
-                val photoURI = FileProvider.getUriForFile(
-                        this,
-                        BuildConfig.APPLICATION_ID,
-                        photoFile)
-
-                Log.e("X-PHOTOURI", "X-PHOTOURI " + photoURI)
-
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-                startActivityForResult(takePictureIntent, REQUEST_TO_CAMERA_GET_FULL_SIZE_IMAGE)
-            }
-        }
     }
 }
