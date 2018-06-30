@@ -6,4 +6,5 @@
     <string name="title_activity_material_image_cropper">MaterialImageCropperActivity</string>
     <string name="material_image_cropper_content_description">A simple view</string>
     <string name="title_activity_test">TestActivity</string>
+    <string name="open_settings_tap_permissions">Open Settings, then tap Permissions and turn on %1$s.</string>
 </resources>
