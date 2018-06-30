@@ -61,7 +61,6 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
                 val destinationUri = Uri.fromFile(File(externalCacheDir, "test.jpg"))
                 startMaterialImageCropperActivity(galleryImageUri!!, destinationUri)
                 //startTestActivity(galleryImageUri!!, destinationUri)
-
             } else {
                 Toast.makeText(this, "Select a Picture from Gallery", Toast.LENGTH_SHORT).show()
             }
@@ -80,7 +79,6 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
      * in current application.
      */
     private fun validateWriteExternalStoragePermission(manifestPermission: String) {
-
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 == PackageManager.PERMISSION_GRANTED) {
             intentToImageCapture()
