@@ -1,6 +1,5 @@
 package com.spidev.mandarinfish.activities
 
-
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 
@@ -8,14 +7,13 @@ import android.content.Intent
 import android.os.Bundle
 import android.provider.MediaStore
 import android.support.v7.app.AppCompatActivity
-
-
 import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Environment
+import android.provider.Settings
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.FileProvider
@@ -34,31 +32,27 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 
-const val REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE: Int = 1
-
 class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationaleListener {
     override fun onAccept() {
-        requestThePermissions()
+        openAppSettings()
     }
 
     var mCurrentPhotoPath: String = ""
-    var cameraDialogFragment: CameraDialogFragment? = null
 
     private var galleryImageUri: Uri? = null
+    private var showCustomPermissionDialog = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        fabCameraSavePublicImage.setOnClickListener { _ ->
-            getRequestPermission()
-        }
+        settingUpClickListener()
+    }
 
-        fabGallery.setOnClickListener { _ ->
-            val intent = Intent(Intent.ACTION_PICK)
-            intent.data = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-            startActivityForResult(intent, REQUEST_TO_MEDIA)
+    private fun settingUpClickListener() {
+        fabCamera.setOnClickListener { _ ->
+            validateWriteExternalStoragePermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         }
 
         fabNextActivity.setOnClickListener { _ ->
@@ -72,6 +66,92 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
                 Toast.makeText(this, "Select a Picture from Gallery", Toast.LENGTH_SHORT).show()
             }
         }
+
+        fabGallery.setOnClickListener { _ ->
+            val intent = Intent(Intent.ACTION_PICK)
+            intent.data = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            startActivityForResult(intent, REQUEST_TO_MEDIA)
+        }
+    }
+
+    /**
+     * Validate the necessary permission for writing and reading files from storage or external applications
+     * since we can open an external camera or gallery application but we cannot read or write the pictures or files
+     * in current application.
+     */
+    private fun validateWriteExternalStoragePermission(manifestPermission: String) {
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_GRANTED) {
+            intentToImageCapture()
+        } else {
+            if (showCustomPermissionDialog) {
+                showCameraDialogFragment()
+            } else {
+                requestPermissions(arrayOf(manifestPermission))
+            }
+        }
+    }
+
+    /**
+     * Request and show a permissions modal
+     */
+    private fun requestPermissions(permissionsStringArray: Array<String>) {
+        ActivityCompat.requestPermissions(this,
+                permissionsStringArray,
+                REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE)
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE -> if (grantResults.isNotEmpty() && grantResults[0]
+                    == PackageManager.PERMISSION_GRANTED) {
+                intentToImageCapture()
+            } else {
+                // shouldShowRequestPermissionRationale return false if the user check "Don't ask again" or "Permission disabled"
+                // for more information https://youtu.be/C8lUdPVSzDk?t=2m23s
+                if (!ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                    showCustomPermissionDialog = true
+                }
+            }
+        }
+    }
+
+    private fun openAppSettings() {
+        val intent = Intent()
+        intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS;
+        val uri = Uri.fromParts("package", packageName, null);
+        intent.data = uri
+        startActivity(intent)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            REQUEST_TO_MEDIA -> if (resultCode == Activity.RESULT_OK) {
+                //data?.data is not null when selecting any file from gallery
+                //mInstaCropper.setImageUri(data?.data!!)
+                Log.e("Gallery Image Uri", "data ${data?.data}")
+                galleryImageUri = data?.data
+                //imgPhoto.rotation = ImagesUtil.getImageOrientation(applicationContext, galleryImageUri).toFloat()
+                imgPhoto.setImageURI(data?.data)
+            } else if (resultCode == Activity.RESULT_CANCELED) {
+
+            }
+
+            REQUEST_TO_CAMERA_GET_FULL_SIZE_IMAGE -> if (resultCode == Activity.RESULT_OK) {
+                //data?.data!! is null when returning from any Camera Application
+                setPic()
+
+            } else if (resultCode == Activity.RESULT_CANCELED) {
+
+            }
+        }
+    }
+
+    private fun showCameraDialogFragment() {
+        CameraDialogFragment.newInstance("MOSTRAR MODAL").show(supportFragmentManager, "layout_camera_layout")
     }
 
     private fun startTestActivity(sourceUri: Uri, destinationUri: Uri) {
@@ -109,37 +189,13 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        when (requestCode) {
-            REQUEST_TO_MEDIA -> if (resultCode == Activity.RESULT_OK) {
-                //data?.data is not null when selecting any file from gallery
-                //mInstaCropper.setImageUri(data?.data!!)
-                Log.e("Gallery Image Uri", "data ${data?.data}")
-                galleryImageUri = data?.data
-                //imgPhoto.rotation = ImagesUtil.getImageOrientation(applicationContext, galleryImageUri).toFloat()
-                imgPhoto.setImageURI(data?.data)
-            } else if (resultCode == Activity.RESULT_CANCELED) {
-
-            }
-
-            REQUEST_TO_CAMERA_GET_FULL_SIZE_IMAGE -> if (resultCode == Activity.RESULT_OK) {
-                //data?.data!! is null when returning from any Camera Application
-                setPic()
-
-            } else if (resultCode == Activity.RESULT_CANCELED) {
-
-            }
-        }
-    }
-
     companion object {
         const val REQUEST_TO_CAMERA_GET_FULL_SIZE_IMAGE: Int = 1
+        const val REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE: Int = 1
         const val REQUEST_TO_MEDIA: Int = 2
-
     }
 
-    fun createPublicImageFile(): File {
+    private fun createPublicImageFile(): File {
         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
         val imageFileName = "JPEG_" + timeStamp + "_"
 
@@ -194,60 +250,6 @@ class MainActivity : AppCompatActivity(), CameraDialogFragment.OnCameraRationale
 
         imgPhoto.setImageBitmap(bitmap)
 
-    }
-
-    fun getRequestPermission() {
-        Log.e("z-getRequestPermis***", "z-getRequestPermis***")
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            Log.e("z-notPermissionWES", "z-notPermissionWES")
-
-            // Should we show an explanation?
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                Log.e("z-showDialogRationale", "z-showDialogRationale")
-
-                val fragmentManager = this.supportFragmentManager
-                cameraDialogFragment = CameraDialogFragment.newInstance("MOSTRAR MODAL")
-                cameraDialogFragment?.show(fragmentManager, "layout_camera_layout")
-            } else {
-
-                Log.e("z-notNeedShowDialogRat", "z-notNeedShowDialogRat")
-
-                // No explanation needed, we can request the permission.
-                requestThePermissions()
-            }
-        } else {
-            Log.e("z-permissionGrantedWES", "z-permissionGrantedWES")
-            intentToImageCapture()
-        }
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
-        Log.e("z-onRequestPermResul***", "z-onRequestPermResul***")
-        when (requestCode) {
-            REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE -> if (grantResults.isNotEmpty() && grantResults[0]
-                    == PackageManager.PERMISSION_GRANTED) {
-
-                Log.e("z-permissionGranted", "z-permissionGranted")
-
-                cameraDialogFragment?.dismiss()
-
-                intentToImageCapture()
-            } else {
-                Log.e("z-permissionNotGranted", "z-permissionNotGranted")
-            }
-        }
-    }
-
-    fun requestThePermissions() {
-        val permissionArrayString = arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-
-        ActivityCompat.requestPermissions(this,
-                permissionArrayString,
-                REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE)
     }
 
     fun intentToImageCapture() {
