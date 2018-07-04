@@ -22,21 +22,30 @@ import android.widget.Toast
 class ImageCropperView : View {
 
     /**
-     * For handling movement on drawable image
+     * For making a movement on drawable image
      */
     private lateinit var gestureDetector: GestureDetector
 
     /**
-     * For handling the zoom in and zoom out on the drawable image
+     * For making a zoom in or zoom out on the drawable image
      */
     private lateinit var scaleGestureDetector: ScaleGestureDetector
 
+    /**
+     *  For drawing a grid on the drawable image
+     */
     private var gridDrawable = GridDrawable()
 
     /**
-     * Basically our drawable image
+     * The current bitmap drawable -> current image
      */
     private var bitmapDrawable: BitmapDrawable? = null
+
+    /**
+     * Dimensions of the drawable image
+     */
+    private var drawableImageWidth = 0f
+    private var drawableImageHeight = 0f
 
     /**
      * The animator for moving the drawable image to its initial position
@@ -51,15 +60,10 @@ class ImageCropperView : View {
     private var viewHeight = 0f
 
     /**
-     * Dimensions of the drawable image
+     * The value for scaling the bitmap drawable
+     * by default scale is 1 for an square image
      */
-    private var drawableImageWidth = 0f
-    private var drawableImageHeight = 0f
-
-    /**
-     * This variable is used to scale the drawable
-     */
-    private var drawableImageScale = 1f
+    private var drawableImageScale = SQUARE_IMAGE_RATIO
 
     /**
      * The rectangle for handling the bounds of the drawable image
@@ -70,8 +74,8 @@ class ImageCropperView : View {
      * The displacement of the image
      * we only need the left and top because the others can be calculated from these
      */
-    private var mDisplayDrawableLeft = 0f
-    private var mDisplayDrawableTop = 0f
+    private var drawableDisplacementInLeft = 0f
+    private var drawableDisplacementInTop = 0f
 
     /**
      * Variables to scale the image and to return to it's initial scale through an animator
@@ -126,32 +130,12 @@ class ImageCropperView : View {
     }
 
     /**
-     * This method is necessary if we want to create an animated drawable that extends {@Drawable}
-     * Please read the official documentation
-     * https://developer.android.com/reference/android/graphics/drawable/Drawable.Callback.html
-     */
-    private var drawableCallback = object : Drawable.Callback {
-        override fun unscheduleDrawable(who: Drawable?, what: Runnable?) {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-        }
-
-        override fun scheduleDrawable(who: Drawable?, what: Runnable?, `when`: Long) {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-        }
-
-        override fun invalidateDrawable(who: Drawable?) {
-            invalidate()
-        }
-
-    }
-
-    /**
      * This function is executed by the user at each moment
      * @param bitmap The bitmap to be showed
      */
     fun setImageBitmap(bitmap: Bitmap) {
-        drawableImageWidth = bitmap.width.toFloat()
-        drawableImageHeight = bitmap.height.toFloat()
+        this.drawableImageWidth = bitmap.width.toFloat()
+        this.drawableImageHeight = bitmap.height.toFloat()
 
         Log.e("VIEW-WIDTH", " " + viewWidth)
         Log.e("VIEW-HEIGHT", " " + viewHeight)
@@ -159,8 +143,53 @@ class ImageCropperView : View {
         Log.e("IMAGE-HEIGHT", " " + drawableImageHeight)
         Log.e("IMAGE-SCALE", " " + drawableImageScale)
         bitmapDrawable = BitmapDrawable(context.resources, bitmap)
-        placeScaledDrawableImageInTheCenter()
+        centerTheScaledDrawableImage()
         refreshDrawable()
+    }
+
+    /**
+     * This method adjusts the bitmap drawable to the view, and center the bitmap drawable
+     * bitmap drawable -> current image
+     */
+    private fun centerTheScaledDrawableImage() {
+        when {
+        //width is bigger than height
+            getBitmapDrawableRatio() >= 1f -> {
+                drawableImageScale = getScale(viewHeight, drawableImageHeight)
+                val scaledDrawableImageWidth = getScaledDrawableImageWidth(drawableImageWidth, drawableImageScale)
+                val expansion = (scaledDrawableImageWidth - viewWidth) / 2
+                drawableDisplacementInLeft = -expansion
+                drawableDisplacementInTop = 0f
+            }
+        //width and height are equal
+            getBitmapDrawableRatio() == 1f -> {
+                drawableDisplacementInLeft = 0f
+                drawableDisplacementInTop = 0f
+            }
+        //height is bigger than width
+            else -> {
+                drawableImageScale = getScale(viewHeight, drawableImageWidth)
+                val scaledDrawableImageHeight = getScaledDrawableImageHeight(drawableImageHeight, drawableImageScale)
+                val expansion = (scaledDrawableImageHeight - viewHeight) / 2
+                drawableDisplacementInLeft = 0f
+                drawableDisplacementInTop = -expansion
+            }
+        }
+    }
+
+    /**
+     * In general, resolutions start takes form of width x height, for calculating the aspect ratio,
+     * we only have to simplified the fraction for instance:
+     * 1920 x 1080 -> 16:9(aspect ratio) -> k = 120 and the division is 1.77777...(ratio)
+     * 1.777777 indicates that width is bigger than height
+     */
+    private fun getBitmapDrawableRatio() = drawableImageWidth / drawableImageHeight
+
+    /**
+     * This method place the drawable image inside the view
+     */
+    private fun placeDrawableImageInTheCenter() {
+        //TODO probably, here we can make the opposite functionality
     }
 
     private fun refreshDrawable() {
@@ -230,18 +259,18 @@ class ImageCropperView : View {
                         Log.e("x-HEIGHT AT_MOST", "HEIGHT AT_MOST")
 
                         val specRatio = parentWidthSize.toFloat() / parentHeightSize.toFloat()
-                        Log.e("x-DEFAULT_RATIO", "DEFAULT_RATIO $DEFAULT_RATIO")
+                        Log.e("x-DEFAULT_RATIO", "DEFAULT_RATIO $SQUARE_IMAGE_RATIO")
                         Log.e("x-DEFAULT_RATIO", "DEFAULT_RATIO $specRatio")
 
-                        if (specRatio == DEFAULT_RATIO) {
+                        if (specRatio == SQUARE_IMAGE_RATIO) {
                             targetWidth = parentWidthSize
                             targetHeight = parentHeightSize
-                        } else if (specRatio > DEFAULT_RATIO) {
-                            targetWidth = (targetHeight * DEFAULT_RATIO).toInt()
+                        } else if (specRatio > SQUARE_IMAGE_RATIO) {
+                            targetWidth = (targetHeight * SQUARE_IMAGE_RATIO).toInt()
                             targetHeight = parentHeightSize
                         } else {
                             targetWidth = parentWidthSize
-                            targetHeight = (targetWidth / DEFAULT_RATIO).toInt()
+                            targetHeight = (targetWidth / SQUARE_IMAGE_RATIO).toInt()
                         }
 
                     }
@@ -288,8 +317,8 @@ class ImageCropperView : View {
     }
 
     private fun updateBitmapDrawable() {
-        rectF.left = mDisplayDrawableLeft
-        rectF.top = mDisplayDrawableTop
+        rectF.left = drawableDisplacementInLeft
+        rectF.top = drawableDisplacementInTop
         rectF.right = rectF.left + getScaledDrawableImageWidth(drawableImageWidth, drawableImageScale)
         rectF.bottom = rectF.top + getScaledDrawableImageHeight(drawableImageHeight, drawableImageScale)
     }
@@ -310,42 +339,6 @@ class ImageCropperView : View {
     }
 
     /**
-     * This method place the drawable image inside the view
-     */
-    private fun placeDrawableImageInTheCenter() {
-        //TODO probably, here we can make the opposite functionality
-    }
-
-    /**
-     * This method adjusts the image to the view, and the placed it center
-     */
-    private fun placeScaledDrawableImageInTheCenter() {
-        when {
-        //The smallest side of the image is rawImageHeight
-            getImageSizeRatio() >= 1f -> {
-                drawableImageScale = getScale(viewHeight, drawableImageHeight)
-                val scaledDrawableImageWidth = getScaledDrawableImageWidth(drawableImageWidth, drawableImageScale)
-                val expansion = (scaledDrawableImageWidth - viewWidth) / 2
-                mDisplayDrawableLeft = -expansion
-                mDisplayDrawableTop = 0f
-            }
-        //The rawImageWidth and rawImageHeight are equals
-            getImageSizeRatio() == 1f -> {
-                mDisplayDrawableLeft = 0f
-                mDisplayDrawableTop = 0f
-            }
-        //The smallest side of the image is rawImageWidth
-            else -> {
-                drawableImageScale = getScale(viewHeight, drawableImageWidth)
-                val scaledDrawableImageHeight = getScaledDrawableImageHeight(drawableImageHeight, drawableImageScale)
-                val expansion = (scaledDrawableImageHeight - viewHeight) / 2
-                mDisplayDrawableLeft = 0f
-                mDisplayDrawableTop = -expansion
-            }
-        }
-    }
-
-    /**
      * This method scales the drawable image width
      */
     private fun getScaledDrawableImageWidth(drawableImageWidth: Float, drawableImageScale: Float) =
@@ -357,13 +350,6 @@ class ImageCropperView : View {
     private fun getScaledDrawableImageHeight(drawableImageHeight: Float, drawableImageScale: Float) =
             drawableImageHeight * drawableImageScale
 
-    /**
-     * Get the ratio of the image's size, the ratio is basically the relation
-     * between the width and the height of the view, width:height -> k
-     * for example: 4:3 -> 0.8, 16:9 -> 0.2, 1:1 -> 1
-     */
-    private fun getImageSizeRatio() = drawableImageWidth / drawableImageHeight
-
     private fun getScale(smallestSideOfView: Float, smallestSideOfImage: Float) = smallestSideOfView / smallestSideOfImage
 
     companion object {
@@ -373,7 +359,7 @@ class ImageCropperView : View {
         const val MAXIMUM_ALLOWED_SCALE = 3.0F
         const val MAXIMUM_OVER_SCALE = 0.7F
         //RATIO VALUE BY DEFAULT TO SPECIFY A SQUARE(1:1)
-        const val DEFAULT_RATIO = 1f
+        const val SQUARE_IMAGE_RATIO = 1f
     }
 
     /**
@@ -521,8 +507,8 @@ class ImageCropperView : View {
             mDistanceX = applyOverScrollFix(mDistanceX, measureOverScrollX())
             mDistanceY = applyOverScrollFix(mDistanceY, measureOverScrollY())
 
-            mDisplayDrawableLeft += mDistanceX
-            mDisplayDrawableTop += mDistanceY
+            drawableDisplacementInLeft += mDistanceX
+            drawableDisplacementInTop += mDistanceY
 
             displayGridDrawable(rectF)
 
@@ -582,8 +568,8 @@ class ImageCropperView : View {
         val scaledFocusX = rectF.left + focusRatioX * rectF.width()
         val scaledFocusY = rectF.top + focusRatioY * rectF.height()
 
-        mDisplayDrawableLeft += focusX - scaledFocusX
-        mDisplayDrawableTop += focusY - scaledFocusY
+        drawableDisplacementInLeft += focusX - scaledFocusX
+        drawableDisplacementInTop += focusY - scaledFocusY
 
         invalidate()
     }
@@ -647,8 +633,8 @@ class ImageCropperView : View {
         //(1)We return to the initial position of the drawable image*
         val overScrollX = measureOverScrollX()
         val overScrollY = measureOverScrollY()
-        mDisplayDrawableLeft -= overScrollX * animatedValue
-        mDisplayDrawableTop -= overScrollY * animatedValue
+        drawableDisplacementInLeft -= overScrollX * animatedValue
+        drawableDisplacementInTop -= overScrollY * animatedValue
 
         // Log.e("mDisplayDrawableTop ","mDisplayDrawableTop " +mDisplayDrawableTop)
         //(2)We return to the initial scale of the drawable image*
@@ -659,6 +645,26 @@ class ImageCropperView : View {
         setScaleKeepingFocus(newScale, mScaleFocusX, mScaleFocusY)
         displayGridDrawable(rectF)
         invalidate()
+    }
+
+    /**
+     * This method is necessary if we want to create an animated drawable that extends {@Drawable}
+     * Please read the official documentation
+     * https://developer.android.com/reference/android/graphics/drawable/Drawable.Callback.html
+     */
+    private var drawableCallback = object : Drawable.Callback {
+        override fun unscheduleDrawable(who: Drawable?, what: Runnable?) {
+            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        }
+
+        override fun scheduleDrawable(who: Drawable?, what: Runnable?, `when`: Long) {
+            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        }
+
+        override fun invalidateDrawable(who: Drawable?) {
+            invalidate()
+        }
+
     }
 }
 
