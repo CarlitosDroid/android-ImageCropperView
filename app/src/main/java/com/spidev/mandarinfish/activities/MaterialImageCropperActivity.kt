@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.provider.MediaStore
+import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
@@ -15,7 +16,6 @@ import com.squareup.picasso.Picasso
 import com.squareup.picasso.Target
 
 import kotlinx.android.synthetic.main.activity_material_image_cropper.*
-import kotlinx.android.synthetic.main.content_main.*
 import kotlinx.android.synthetic.main.content_material_image_cropper.*
 
 
@@ -62,7 +62,6 @@ class MaterialImageCropperActivity : AppCompatActivity() {
                 if (placeHolderDrawable != null) {
 
                 }
-                //ivFinal.setImageDrawable(placeHolderDrawable)
                 val asdf = ImageCropperView(baseContext)
             }
 
@@ -72,16 +71,13 @@ class MaterialImageCropperActivity : AppCompatActivity() {
 
             override fun onBitmapLoaded(bitmap: Bitmap, from: Picasso.LoadedFrom?) {
                 Log.e("onBitmapLoaded", "onBitmapLoaded")
-                //ivFinal.setImageBitmap(bitmap)
                 micPicture.setImageBitmap(bitmap)
-                micPicture.setLineColor(R.color.md_black_1000)
-                micPicture.setBorderLineColor(R.color.md_orange_900)
             }
         }
 
         micPicture.tag = target
 
-        fab.setOnClickListener { view ->
+        fabRefresh.setOnClickListener { _ ->
             Picasso.with(this)
                     .load(sourceUri)
                     .placeholder(R.drawable.ic_photo_blue_700_24dp)

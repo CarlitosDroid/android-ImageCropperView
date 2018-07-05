@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.support.annotation.ColorInt
 import android.util.AttributeSet
 import android.util.Log
 import android.view.GestureDetector
@@ -51,7 +52,11 @@ class ImageCropperView : View {
      * The animator for moving the drawable image to its initial position
      * when the user ACTION UP
      */
-    private var mAnimator: ValueAnimator? = null
+    private var mAnimator = ValueAnimator().apply {
+        duration = 400
+        setFloatValues(0f, 1f)
+        interpolator = DecelerateInterpolator(0.25f)
+    }
 
     /**
      * Dimensions of the view
@@ -63,7 +68,7 @@ class ImageCropperView : View {
      * The value for scaling the bitmap drawable
      * by default scale is 1 for an square image
      */
-    private var drawableImageScale = SQUARE_IMAGE_RATIO
+    private var drawableImageScale = DEFAULT_IMAGE_SCALE
 
     /**
      * The rectangle for handling the bounds of the drawable image
@@ -87,10 +92,6 @@ class ImageCropperView : View {
 
     private var DEFAULT_CENTER_SCALE_TYPE = 0
 
-    private var micLineBorderColor = 0
-    private var micLineColor = 0
-    private var micScaleType = 0
-
     constructor(context: Context) : super(context)
 
     constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {
@@ -102,31 +103,41 @@ class ImageCropperView : View {
     }
 
     private fun initialize(attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int) {
-        val a = context.obtainStyledAttributes(attrs, R.styleable.MaterialImageCropper, defStyleAttr, defStyleRes)
-        micLineBorderColor = a.getColor(R.styleable.MaterialImageCropper_micLineBorderColor, Color.GREEN)
-        micLineColor = a.getColor(R.styleable.MaterialImageCropper_micLineColor, Color.GRAY)
-        micScaleType = a.getInteger(R.styleable.MaterialImageCropper_micScaleType, DEFAULT_CENTER_SCALE_TYPE)
+        val a = context.obtainStyledAttributes(attrs, R.styleable.ImageCropperView, defStyleAttr, defStyleRes)
+        val gridLineBorderColor = a.getColor(R.styleable.ImageCropperView_gridLineBorderColor, Color.GREEN)
+        val gridLineColor = a.getColor(R.styleable.ImageCropperView_gridLineColor, Color.GRAY)
+        val gridScaleType = a.getInteger(R.styleable.ImageCropperView_gridScaleType, DEFAULT_CENTER_SCALE_TYPE)
+        val gridLineStrokeWidth = a.getInteger(R.styleable.ImageCropperView_gridLineStrokeWidth, 1)
+        val gridLineBorderStrokeWidth = a.getInteger(R.styleable.ImageCropperView_gridLineBorderStrokeWidth, 1)
         a.recycle()
 
-        setLineColor(micLineColor)
-        setBorderLineColor(micLineBorderColor)
+        //SettingUp GridDrawable
+        setGridLineColor(gridLineColor)
+        setGridBorderLineColor(gridLineBorderColor)
+        setGridLineStrokeWidth(gridLineStrokeWidth)
+        setGridLineBorderStrokeWidth(gridLineBorderStrokeWidth)
 
-        mAnimator = ValueAnimator()
-        mAnimator!!.duration = 400
-        mAnimator!!.setFloatValues(0f, 1f)
-        mAnimator!!.interpolator = DecelerateInterpolator(0.25f)
-        mAnimator!!.addUpdateListener(onSettleAnimatorUpdateListener)
+        //SettingUp Listeners, We make sure that listeners are initialized at this point.
+        mAnimator.addUpdateListener(onSettlingAnimatorUpdateListener)
         gestureDetector = GestureDetector(context, onGestureListener)
         scaleGestureDetector = ScaleGestureDetector(context, onScaleGestureListener)
         gridDrawable.callback = drawableCallback
     }
 
-    fun setLineColor(color: Int) {
+    fun setGridLineColor(@ColorInt color: Int) {
         gridDrawable.linePaint.color = color
     }
 
-    fun setBorderLineColor(color: Int) {
+    fun setGridBorderLineColor(@ColorInt color: Int) {
         gridDrawable.lineBorderPaint.color = color
+    }
+
+    fun setGridLineStrokeWidth(lineStrokeWidth: Int) {
+        gridDrawable.linePaint.strokeWidth = lineStrokeWidth.toFloat()
+    }
+
+    fun setGridLineBorderStrokeWidth(lineStrokeBorderWidth: Int) {
+        gridDrawable.lineBorderPaint.strokeWidth = lineStrokeBorderWidth.toFloat()
     }
 
     /**
@@ -145,6 +156,10 @@ class ImageCropperView : View {
         bitmapDrawable = BitmapDrawable(context.resources, bitmap)
         centerTheScaledDrawableImage()
         refreshDrawable()
+    }
+
+    private fun refreshDrawable() {
+        invalidate()
     }
 
     /**
@@ -168,7 +183,7 @@ class ImageCropperView : View {
             }
         //height is bigger than width
             else -> {
-                drawableImageScale = getScale(viewHeight, drawableImageWidth)
+                drawableImageScale = getScale(viewWidth, drawableImageWidth)
                 val scaledDrawableImageHeight = getScaledDrawableImageHeight(drawableImageHeight, drawableImageScale)
                 val expansion = (scaledDrawableImageHeight - viewHeight) / 2
                 drawableDisplacementInLeft = 0f
@@ -178,8 +193,8 @@ class ImageCropperView : View {
     }
 
     /**
-     * In general, resolutions start takes form of width x height, for calculating the aspect ratio,
-     * we only have to simplified the fraction for instance:
+     * In general, resolutions start takes form of width x height,
+     * for calculating the aspect ratio just simplify the fraction, for instance:
      * 1920 x 1080 -> 16:9(aspect ratio) -> k = 120 and the division is 1.77777...(ratio)
      * 1.777777 indicates that width is bigger than height
      */
@@ -192,9 +207,7 @@ class ImageCropperView : View {
         //TODO probably, here we can make the opposite functionality
     }
 
-    private fun refreshDrawable() {
-        invalidate()
-    }
+    private fun getScale(smallestSideOfView: Float, smallestSideOfImage: Float) = smallestSideOfView / smallestSideOfImage
 
     /**
      * (1)
@@ -259,18 +272,18 @@ class ImageCropperView : View {
                         Log.e("x-HEIGHT AT_MOST", "HEIGHT AT_MOST")
 
                         val specRatio = parentWidthSize.toFloat() / parentHeightSize.toFloat()
-                        Log.e("x-DEFAULT_RATIO", "DEFAULT_RATIO $SQUARE_IMAGE_RATIO")
+                        Log.e("x-DEFAULT_RATIO", "DEFAULT_RATIO $DEFAULT_IMAGE_RATIO")
                         Log.e("x-DEFAULT_RATIO", "DEFAULT_RATIO $specRatio")
 
-                        if (specRatio == SQUARE_IMAGE_RATIO) {
+                        if (specRatio == DEFAULT_IMAGE_RATIO) {
                             targetWidth = parentWidthSize
                             targetHeight = parentHeightSize
-                        } else if (specRatio > SQUARE_IMAGE_RATIO) {
-                            targetWidth = (targetHeight * SQUARE_IMAGE_RATIO).toInt()
+                        } else if (specRatio > DEFAULT_IMAGE_RATIO) {
+                            targetWidth = (targetHeight * DEFAULT_IMAGE_RATIO).toInt()
                             targetHeight = parentHeightSize
                         } else {
                             targetWidth = parentWidthSize
-                            targetHeight = (targetWidth / SQUARE_IMAGE_RATIO).toInt()
+                            targetHeight = (targetWidth / DEFAULT_IMAGE_RATIO).toInt()
                         }
 
                     }
@@ -308,7 +321,7 @@ class ImageCropperView : View {
      * First: we're going to convert our current bitmap to drawable if we want to add any paint over
      * Don't forget that the invalidate() method call this method
      */
-    override fun onDraw(canvas: Canvas?) {
+    override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         updateBitmapDrawable()
         displayBitmapDrawable()
@@ -350,8 +363,6 @@ class ImageCropperView : View {
     private fun getScaledDrawableImageHeight(drawableImageHeight: Float, drawableImageScale: Float) =
             drawableImageHeight * drawableImageScale
 
-    private fun getScale(smallestSideOfView: Float, smallestSideOfImage: Float) = smallestSideOfView / smallestSideOfImage
-
     companion object {
         //TODO PODEMOS REDUCIR A MITAD LA ESCALA O 3 VECES SU MISMO TAMAÑO
         //TODO POR EJEMPLO SI TENEMOS UNA IAMGEN 200X 200 -> 100X 100 , OR 1080X1080 -> 540X540
@@ -359,7 +370,8 @@ class ImageCropperView : View {
         const val MAXIMUM_ALLOWED_SCALE = 3.0F
         const val MAXIMUM_OVER_SCALE = 0.7F
         //RATIO VALUE BY DEFAULT TO SPECIFY A SQUARE(1:1)
-        const val SQUARE_IMAGE_RATIO = 1f
+        const val DEFAULT_IMAGE_RATIO = 1f
+        const val DEFAULT_IMAGE_SCALE = 1f
     }
 
     /**
@@ -372,6 +384,8 @@ class ImageCropperView : View {
 
         when (event.actionMasked) {
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_OUTSIDE -> {
+
+                Log.e("ANIMATOR", "ANIMATOR $mAnimator.sta")
                 mAnimator!!.start()
             }
         }
@@ -626,7 +640,7 @@ class ImageCropperView : View {
      * (1)Return to the initial position of the image
      * (2)Return to the initial scale of the image
      */
-    private var onSettleAnimatorUpdateListener = ValueAnimator.AnimatorUpdateListener { animation ->
+    private var onSettlingAnimatorUpdateListener = ValueAnimator.AnimatorUpdateListener { animation ->
 
         val animatedValue = animation.animatedValue as Float
 

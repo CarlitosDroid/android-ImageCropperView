@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <declare-styleable name="MaterialImageCropper">
-        <attr name="micLineBorderColor" format="color|reference" />
-        <attr name="micLineColor" format="color|reference" />
-        <attr name="micScaleType">
+    <declare-styleable name="ImageCropperView">
+        <attr name="gridLineBorderColor" format="color|reference" />
+        <attr name="gridLineColor" format="color|reference" />
+        <attr name="gridLineStrokeWidth" format="integer" />
+        <attr name="gridLineBorderStrokeWidth" format="integer" />
+        <attr name="gridScaleType">
             <enum name="center" value="0" />
             <enum name="adjust" value="1" />
         </attr>
