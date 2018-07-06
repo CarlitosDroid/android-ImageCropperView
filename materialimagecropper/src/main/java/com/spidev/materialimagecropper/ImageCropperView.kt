@@ -41,6 +41,7 @@ class ImageCropperView : View {
      * The current bitmap drawable -> current image
      */
     private var bitmapDrawable: BitmapDrawable? = null
+    private lateinit var bitmap: Bitmap
 
     /**
      * Dimensions of the drawable image
@@ -145,6 +146,7 @@ class ImageCropperView : View {
      * @param bitmap The bitmap to be showed
      */
     fun setImageBitmap(bitmap: Bitmap) {
+        this.bitmap = bitmap
         this.drawableImageWidth = bitmap.width.toFloat()
         this.drawableImageHeight = bitmap.height.toFloat()
 
@@ -235,7 +237,6 @@ class ImageCropperView : View {
         var targetHeight = 1
 
         when (widthMode) {
-
             MeasureSpec.EXACTLY -> {
                 Log.e("x-WIDTH EXACTLY", "WIDTH EXACTLY")
                 targetWidth = parentWidthSize
@@ -263,7 +264,7 @@ class ImageCropperView : View {
                         Log.e("x-HEIGHT EXACTLY", "HEIGHT EXACTLY")
                         // if we have a vertical line, wrap_content-match_parent
                         // set the all the height of the parent
-                        // and the minium between the width of the parent or the height of the parent x ratio
+                        // and the minimum between the width of the parent or the height of the parent x ratio
                         targetHeight = parentWidthSize
                         targetWidth = parentWidthSize
 
@@ -678,7 +679,23 @@ class ImageCropperView : View {
         override fun invalidateDrawable(who: Drawable?) {
             invalidate()
         }
+    }
 
+    fun cropImageAndResize(croppedBitmapCallback: CroppedBitmapCallback) {
+        Log.e("BITMAP", "BITMAP W ${bitmapDrawable!!.bitmap.width}")
+        Log.e("BITMAP", "BITMAP H ${bitmapDrawable!!.bitmap.height}")
+
+        Log.e("RECT", "RECT W ${rectF.left}")
+        Log.e("RECT", "RECT H ${rectF.top}")
+
+
+        val bitmap = Bitmap.createBitmap(
+                this.bitmapDrawable!!.bitmap,
+                Math.abs(rectF.left.toInt()), Math.abs(rectF.top.toInt()),
+                2988,
+                2988)
+        val path = FileUtils.saveToFile(true, bitmap)
+        croppedBitmapCallback.onCroppedBitmapReady()
     }
 }
 

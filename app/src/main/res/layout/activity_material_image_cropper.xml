@@ -23,13 +23,22 @@
     <include layout="@layout/content_material_image_cropper" />
 
     <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabCropImage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start|bottom"
+        android:layout_margin="@dimen/fab_margin"
+        app:backgroundTint="@color/md_red_500"
+        app:srcCompat="@drawable/ic_crop_white_36dp" />
+
+    <android.support.design.widget.FloatingActionButton
         android:id="@+id/fabShowExifData"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center"
         android:layout_margin="@dimen/fab_margin"
-        app:srcCompat="@drawable/ic_info_white_36dp"
-        app:backgroundTint="@color/colorPrimary"/>
+        app:backgroundTint="@color/colorPrimary"
+        app:srcCompat="@drawable/ic_info_white_36dp" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fabRefresh"
@@ -37,6 +46,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
+        app:backgroundTint="@color/md_orange_500"
         app:srcCompat="@drawable/ic_refresh_white_36dp" />
 
 </android.support.design.widget.CoordinatorLayout>

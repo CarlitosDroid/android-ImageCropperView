@@ -11,6 +11,7 @@ import android.view.View
 import com.spidev.mandarinfish.R
 import com.spidev.mandarinfish.commons.Constants
 import com.spidev.mandarinfish.util.ImagesUtil
+import com.spidev.materialimagecropper.CroppedBitmapCallback
 import com.spidev.materialimagecropper.ImageCropperView
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.Target
@@ -77,15 +78,23 @@ class MaterialImageCropperActivity : AppCompatActivity() {
 
         micPicture.tag = target
 
+        fabCropImage.setOnClickListener { _ ->
+            micPicture.cropImageAndResize(object : CroppedBitmapCallback {
+                override fun onCroppedBitmapReady() {
+                    Log.e("VEAMOSSS","VEAMOOOSSSSS")
+                }
+            })
+        }
+
+        fabShowExifData.setOnClickListener { _ ->
+            ImagesUtil.showExifTag(this, sourceUri)
+        }
+
         fabRefresh.setOnClickListener { _ ->
             Picasso.with(this)
                     .load(sourceUri)
                     .placeholder(R.drawable.ic_photo_blue_700_24dp)
                     .into(target)
-        }
-
-        fabShowExifData.setOnClickListener { _ ->
-            ImagesUtil.showExifTag(this, sourceUri)
         }
     }
 }

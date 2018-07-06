@@ -25,6 +25,7 @@ import com.spidev.mandarinfish.BuildConfig
 import com.spidev.mandarinfish.R
 import com.spidev.mandarinfish.commons.Constants
 import com.spidev.mandarinfish.fragments.AppSettingsDialogFragment
+import com.spidev.materialimagecropper.FileUtils.Companion.getImagesFolderPath
 import com.spidev.mandarinfish.util.ImagesUtil
 import kotlinx.android.synthetic.main.content_main.*
 import java.io.IOException
@@ -64,6 +65,7 @@ class MainActivity : AppCompatActivity(), AppSettingsDialogFragment.OnCameraRati
 
     private fun settingUpClickListener() {
         fabCamera.setOnClickListener { _ ->
+            Log.e("VEAMOS", "VEAMOS ${getImagesFolderPath()}")
             validatePermission(permissionsList[INDEX_WRITE_PERMISSION])
         }
 
