@@ -41,13 +41,12 @@ class ImageCropperView : View {
      * The current bitmap drawable -> current image
      */
     private var bitmapDrawable: BitmapDrawable? = null
-    private lateinit var bitmap: Bitmap
 
     /**
      * Dimensions of the drawable image
      */
-    private var drawableImageWidth = 0f
-    private var drawableImageHeight = 0f
+    private var bitmapWidth = 0f
+    private var bitmapHeight = 0f
 
     /**
      * The animator for moving the drawable image to its initial position
@@ -69,7 +68,7 @@ class ImageCropperView : View {
      * The value for scaling the bitmap drawable
      * by default scale is 1 for an square image
      */
-    private var drawableImageScale = DEFAULT_IMAGE_SCALE
+    private var bitmapScale = DEFAULT_IMAGE_SCALE
 
     /**
      * The rectangle for handling the bounds of the drawable image
@@ -80,8 +79,8 @@ class ImageCropperView : View {
      * The displacement of the image
      * we only need the left and top because the others can be calculated from these
      */
-    private var drawableDisplacementInLeft = 0f
-    private var drawableDisplacementInTop = 0f
+    private var bitmapDisplacementInLeft = 0f
+    private var bitmapDisplacementInTop = 0f
 
     /**
      * Variables to scale the image and to return to it's initial scale through an animator
@@ -146,15 +145,13 @@ class ImageCropperView : View {
      * @param bitmap The bitmap to be showed
      */
     fun setImageBitmap(bitmap: Bitmap) {
-        this.bitmap = bitmap
-        this.drawableImageWidth = bitmap.width.toFloat()
-        this.drawableImageHeight = bitmap.height.toFloat()
+        this.bitmapWidth = bitmap.width.toFloat()
+        this.bitmapHeight = bitmap.height.toFloat()
 
-        Log.e("VIEW-WIDTH", " " + viewWidth)
-        Log.e("VIEW-HEIGHT", " " + viewHeight)
-        Log.e("IMAGE-WIDTH", " " + drawableImageWidth)
-        Log.e("IMAGE-HEIGHT", " " + drawableImageHeight)
-        Log.e("IMAGE-SCALE", " " + drawableImageScale)
+        Log.e("VIEW-WIDTH", "$viewWidth")
+        Log.e("VIEW-HEIGHT", "$viewHeight")
+        Log.e("IMAGE-WIDTH", "$bitmapWidth")
+        Log.e("IMAGE-HEIGHT", "$bitmapHeight")
         bitmapDrawable = BitmapDrawable(context.resources, bitmap)
         centerTheScaledDrawableImage()
         refreshDrawable()
@@ -172,26 +169,29 @@ class ImageCropperView : View {
         when {
         //width is bigger than height
             getBitmapDrawableRatio() >= 1f -> {
-                drawableImageScale = getScale(viewHeight, drawableImageHeight)
-                val scaledDrawableImageWidth = getScaledDrawableImageWidth(drawableImageWidth, drawableImageScale)
-                val expansion = (scaledDrawableImageWidth - viewWidth) / 2
-                drawableDisplacementInLeft = -expansion
-                drawableDisplacementInTop = 0f
+                bitmapScale = getBitmapScale(viewHeight, bitmapHeight)
+                val scaledBitmapWidth = getScaledBitmapWidth(bitmapWidth, bitmapScale)
+                val expansion = (scaledBitmapWidth - viewWidth) / 2
+                bitmapDisplacementInLeft = -expansion
+                bitmapDisplacementInTop = 0f
             }
         //width and height are equal
             getBitmapDrawableRatio() == 1f -> {
-                drawableDisplacementInLeft = 0f
-                drawableDisplacementInTop = 0f
+                bitmapDisplacementInLeft = 0f
+                bitmapDisplacementInTop = 0f
             }
         //height is bigger than width
             else -> {
-                drawableImageScale = getScale(viewWidth, drawableImageWidth)
-                val scaledDrawableImageHeight = getScaledDrawableImageHeight(drawableImageHeight, drawableImageScale)
-                val expansion = (scaledDrawableImageHeight - viewHeight) / 2
-                drawableDisplacementInLeft = 0f
-                drawableDisplacementInTop = -expansion
+                bitmapScale = getBitmapScale(viewWidth, bitmapWidth)
+                val scaledBitmapHeight = getScaledBitmapHeight(bitmapHeight, bitmapScale)
+                val expansion = (scaledBitmapHeight - viewHeight) / 2
+                bitmapDisplacementInLeft = 0f
+                bitmapDisplacementInTop = -expansion
             }
         }
+        Log.e("IMAGE-SCALE", "$bitmapScale")
+        Log.e("IMAGE-WIDTH SCALED", "${getScaledBitmapWidth(bitmapWidth, bitmapScale)}")
+        Log.e("IMAGE-HEIGHT SCALED", "${getScaledBitmapHeight(bitmapHeight, bitmapScale)}")
     }
 
     /**
@@ -200,7 +200,7 @@ class ImageCropperView : View {
      * 1920 x 1080 -> 16:9(aspect ratio) -> k = 120 and the division is 1.77777...(ratio)
      * 1.777777 indicates that width is bigger than height
      */
-    private fun getBitmapDrawableRatio() = drawableImageWidth / drawableImageHeight
+    private fun getBitmapDrawableRatio() = bitmapWidth / bitmapHeight
 
     /**
      * This method place the drawable image inside the view
@@ -209,7 +209,32 @@ class ImageCropperView : View {
         //TODO probably, here we can make the opposite functionality
     }
 
-    private fun getScale(smallestSideOfView: Float, smallestSideOfImage: Float) = smallestSideOfView / smallestSideOfImage
+    private fun getBitmapScale(smallestSideOfView: Float, smallestSideOfImage: Float) =
+            smallestSideOfView / smallestSideOfImage
+
+    /**
+     * This method scales the drawable image width
+     */
+    private fun getScaledBitmapWidth(bitmapWidth: Float, bitmapScale: Float) =
+            bitmapWidth * bitmapScale
+
+    /**
+     * This method scales the drawable image height
+     */
+    private fun getScaledBitmapHeight(bitmapHeight: Float, bitmapScale: Float) =
+            bitmapHeight * bitmapScale
+
+    private fun updateBitmapDrawable() {
+        Log.e("rectf-top", "$bitmapDisplacementInTop")
+        rectF.left = bitmapDisplacementInLeft
+        rectF.top = bitmapDisplacementInTop
+        rectF.right = rectF.left + getScaledBitmapWidth(bitmapWidth, bitmapScale)
+        rectF.bottom = rectF.top + getScaledBitmapHeight(bitmapHeight, bitmapScale)
+    }
+
+    private fun displayBitmapDrawable() {
+        bitmapDrawable?.setBounds(rectF.left.toInt(), rectF.top.toInt(), rectF.right.toInt(), rectF.bottom.toInt())
+    }
 
     /**
      * (1)
@@ -326,19 +351,10 @@ class ImageCropperView : View {
         super.onDraw(canvas)
         updateBitmapDrawable()
         displayBitmapDrawable()
-        bitmapDrawable?.draw(canvas)
-        gridDrawable.draw(canvas)
-    }
-
-    private fun updateBitmapDrawable() {
-        rectF.left = drawableDisplacementInLeft
-        rectF.top = drawableDisplacementInTop
-        rectF.right = rectF.left + getScaledDrawableImageWidth(drawableImageWidth, drawableImageScale)
-        rectF.bottom = rectF.top + getScaledDrawableImageHeight(drawableImageHeight, drawableImageScale)
-    }
-
-    private fun displayBitmapDrawable() {
-        bitmapDrawable?.setBounds(rectF.left.toInt(), rectF.top.toInt(), rectF.right.toInt(), rectF.bottom.toInt())
+        if (bitmapDrawable != null) {
+            bitmapDrawable?.draw(canvas)
+            gridDrawable.draw(canvas)
+        }
     }
 
     /**
@@ -351,18 +367,6 @@ class ImageCropperView : View {
         gridRectF.intersect(0f, 0f, viewWidth, viewHeight)
         gridDrawable.setBounds(gridRectF.left.toInt(), gridRectF.top.toInt(), gridRectF.right.toInt(), gridRectF.bottom.toInt())
     }
-
-    /**
-     * This method scales the drawable image width
-     */
-    private fun getScaledDrawableImageWidth(drawableImageWidth: Float, drawableImageScale: Float) =
-            drawableImageWidth * drawableImageScale
-
-    /**
-     * This method scales the drawable image height
-     */
-    private fun getScaledDrawableImageHeight(drawableImageHeight: Float, drawableImageScale: Float) =
-            drawableImageHeight * drawableImageScale
 
     companion object {
         //TODO PODEMOS REDUCIR A MITAD LA ESCALA O 3 VECES SU MISMO TAMAÑO
@@ -522,8 +526,8 @@ class ImageCropperView : View {
             mDistanceX = applyOverScrollFix(mDistanceX, measureOverScrollX())
             mDistanceY = applyOverScrollFix(mDistanceY, measureOverScrollY())
 
-            drawableDisplacementInLeft += mDistanceX
-            drawableDisplacementInTop += mDistanceY
+            bitmapDisplacementInLeft += mDistanceX
+            bitmapDisplacementInTop += mDistanceY
 
             displayGridDrawable(rectF)
 
@@ -549,7 +553,7 @@ class ImageCropperView : View {
 
         override fun onScale(detector: ScaleGestureDetector): Boolean {
             //tiende a crecer
-            //overScale = drawableImageScale / 0.8
+            //overScale = bitmapScale / 0.8
             val overScale = measureOverScale()
 
             //detector.scaleFactor -> when expanding -> 1.000
@@ -560,7 +564,7 @@ class ImageCropperView : View {
             //detector.focusX and detector.focusY -> the focal point between each of the pointer forming the gesture
             mScaleFocusX = detector.focusX
             mScaleFocusY = detector.focusY
-            setScaleKeepingFocus(drawableImageScale * scale, mScaleFocusX, mScaleFocusY)
+            setScaleKeepingFocus(bitmapScale * scale, mScaleFocusX, mScaleFocusY)
 
             invalidate()
             return true
@@ -576,15 +580,15 @@ class ImageCropperView : View {
         val focusRatioX = (focusX - rectF.left) / rectF.width()
         val focusRatioY = (focusY - rectF.top) / rectF.height()
 
-        drawableImageScale = scale
+        bitmapScale = scale
 
         updateBitmapDrawable()
 
         val scaledFocusX = rectF.left + focusRatioX * rectF.width()
         val scaledFocusY = rectF.top + focusRatioY * rectF.height()
 
-        drawableDisplacementInLeft += focusX - scaledFocusX
-        drawableDisplacementInTop += focusY - scaledFocusY
+        bitmapDisplacementInLeft += focusX - scaledFocusX
+        bitmapDisplacementInTop += focusY - scaledFocusY
 
         invalidate()
     }
@@ -629,8 +633,8 @@ class ImageCropperView : View {
      */
     private fun measureOverScale(): Float {
         return when {
-            drawableImageScale < MINIMUM_ALLOWED_SCALE -> drawableImageScale / MINIMUM_ALLOWED_SCALE
-            drawableImageScale > MAXIMUM_ALLOWED_SCALE -> drawableImageScale / MAXIMUM_ALLOWED_SCALE
+            bitmapScale < MINIMUM_ALLOWED_SCALE -> bitmapScale / MINIMUM_ALLOWED_SCALE
+            bitmapScale > MAXIMUM_ALLOWED_SCALE -> bitmapScale / MAXIMUM_ALLOWED_SCALE
             else -> 1f
         }
     }
@@ -648,14 +652,14 @@ class ImageCropperView : View {
         //(1)We return to the initial position of the drawable image*
         val overScrollX = measureOverScrollX()
         val overScrollY = measureOverScrollY()
-        drawableDisplacementInLeft -= overScrollX * animatedValue
-        drawableDisplacementInTop -= overScrollY * animatedValue
+        bitmapDisplacementInLeft -= overScrollX * animatedValue
+        bitmapDisplacementInTop -= overScrollY * animatedValue
 
         // Log.e("mDisplayDrawableTop ","mDisplayDrawableTop " +mDisplayDrawableTop)
         //(2)We return to the initial scale of the drawable image*
         val overScale = measureOverScale()
-        val targetScale = drawableImageScale / overScale
-        val newScale = (1 - animatedValue) * drawableImageScale + animatedValue * targetScale
+        val targetScale = bitmapScale / overScale
+        val newScale = (1 - animatedValue) * bitmapScale + animatedValue * targetScale
 
         setScaleKeepingFocus(newScale, mScaleFocusX, mScaleFocusY)
         displayGridDrawable(rectF)
@@ -682,21 +686,47 @@ class ImageCropperView : View {
     }
 
     fun cropImageAndResize(croppedBitmapCallback: CroppedBitmapCallback) {
-        Log.e("BITMAP", "BITMAP W ${bitmapDrawable!!.bitmap.width}")
-        Log.e("BITMAP", "BITMAP H ${bitmapDrawable!!.bitmap.height}")
+        val croppedImageWidth: Int
+        val croppedImageHeight: Int
 
-        Log.e("RECT", "RECT W ${rectF.left}")
-        Log.e("RECT", "RECT H ${rectF.top}")
+        val croppedBitmapDisplacementInLeft: Float
+        val croppedBitmapDisplacementInTop: Float
 
+        when {
+        //width is bigger than height
+            getBitmapDrawableRatio() >= 1f -> {
+                croppedImageWidth = this.bitmapDrawable!!.bitmap.height
+                croppedImageHeight = this.bitmapDrawable!!.bitmap.height
+                croppedBitmapDisplacementInLeft = bitmapDisplacementInLeft / bitmapScale
+                croppedBitmapDisplacementInTop = 0f
+            }
+        //width and height are equal
+            getBitmapDrawableRatio() == 1f -> {
+                croppedImageWidth = 0
+                croppedImageHeight = 0
+                croppedBitmapDisplacementInLeft = 0f
+                croppedBitmapDisplacementInTop = 0f
+            }
+        //height is bigger than width
+            else -> {
+                croppedImageWidth = this.bitmapDrawable!!.bitmap.width
+                croppedImageHeight = this.bitmapDrawable!!.bitmap.width
+                croppedBitmapDisplacementInLeft = 0f
+                croppedBitmapDisplacementInTop = bitmapDisplacementInTop / bitmapScale
+            }
+        }
 
         val bitmap = Bitmap.createBitmap(
                 this.bitmapDrawable!!.bitmap,
-                Math.abs(rectF.left.toInt()), Math.abs(rectF.top.toInt()),
-                2988,
-                2988)
+                croppedBitmapDisplacementInLeft.toInt(),
+                Math.abs(croppedBitmapDisplacementInTop.toInt()),
+                croppedImageWidth,
+                croppedImageHeight)
         val path = FileUtils.saveToFile(true, bitmap)
         croppedBitmapCallback.onCroppedBitmapReady()
     }
+
+
 }
 
 
