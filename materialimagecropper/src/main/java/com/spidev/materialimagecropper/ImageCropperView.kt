@@ -686,6 +686,7 @@ class ImageCropperView : View {
     }
 
     fun cropImageAndResize(croppedBitmapCallback: CroppedBitmapCallback) {
+
         val croppedImageWidth: Int
         val croppedImageHeight: Int
 
@@ -716,17 +717,19 @@ class ImageCropperView : View {
             }
         }
 
+        Log.e("CROP-y","${Math.abs(croppedBitmapDisplacementInTop.toInt())}")
+        Log.e("CROP-HEIGHT","$croppedImageHeight")
+        Log.e("CROP-BITMAP-HEIGHT","${this.bitmapDrawable!!.bitmap.height}")
+
         val bitmap = Bitmap.createBitmap(
                 this.bitmapDrawable!!.bitmap,
-                croppedBitmapDisplacementInLeft.toInt(),
+                Math.abs(croppedBitmapDisplacementInLeft.toInt()),
                 Math.abs(croppedBitmapDisplacementInTop.toInt()),
                 croppedImageWidth,
                 croppedImageHeight)
         val path = FileUtils.saveToFile(true, bitmap)
         croppedBitmapCallback.onCroppedBitmapReady()
     }
-
-
 }
 
 
