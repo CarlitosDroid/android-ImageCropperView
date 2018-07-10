@@ -218,12 +218,6 @@ class ImageCropperView : View {
     private fun getScaledBitmapHeight(bitmapHeight: Float, bitmapScale: Float) =
             bitmapHeight * bitmapScale
 
-    private fun updateBitmapDrawable() {
-        rectF.right = rectF.left + getScaledBitmapWidth(bitmapWidth, bitmapScale)
-        rectF.bottom = rectF.top + getScaledBitmapHeight(bitmapHeight, bitmapScale)
-        bitmapDrawable?.setBounds(rectF.left.toInt(), rectF.top.toInt(), rectF.right.toInt(), rectF.bottom.toInt())
-    }
-
     /**
      * (1)
      * This method is called before onLayout method
@@ -342,6 +336,12 @@ class ImageCropperView : View {
             bitmapDrawable?.draw(canvas)
             gridDrawable.draw(canvas)
         }
+    }
+
+    private fun updateBitmapDrawable() {
+        rectF.right = rectF.left + getScaledBitmapWidth(bitmapWidth, bitmapScale)
+        rectF.bottom = rectF.top + getScaledBitmapHeight(bitmapHeight, bitmapScale)
+        bitmapDrawable?.setBounds(rectF.left.toInt(), rectF.top.toInt(), rectF.right.toInt(), rectF.bottom.toInt())
     }
 
     /**
@@ -484,6 +484,7 @@ class ImageCropperView : View {
 
             //Don't put up updateGridDrawable onDraw() method, animation doesn't work
             //Show grid with animation while you're movement the image
+            updateBitmapDrawable()
             updateGridDrawable()
 
             invalidate()
@@ -520,9 +521,10 @@ class ImageCropperView : View {
             mScaleFocusX = detector.focusX
             mScaleFocusY = detector.focusY
 
-            setScaleKeepingFocus(mScaleFocusX, mScaleFocusY)
+            scaleImageKeepingFocus()
 
             invalidate()
+
             return true
         }
     }
@@ -538,8 +540,6 @@ class ImageCropperView : View {
         //animatedValue starts in 0 and varies between 0.0 ... 1.0 in a specific time assigned to mAnimator
         val animatedValue = animation.animatedValue as Float
 
-
-
         //(1)RETURN TO ORIGINAL POSITION IF USER MOVEMENT MORE THAN VIEW LIMIT
         val overScrollX = measureOverScrollX()
         val overScrollY = measureOverScrollY()
@@ -552,9 +552,7 @@ class ImageCropperView : View {
         invalidate()
 
 
-
-
-
+        //(2)GO BACK TO MAXIMUM OR MINIMUM SCALE
 
 /*
         //setScaleKeepingFocus(mScaleFocusX, mScaleFocusY)
@@ -602,21 +600,19 @@ class ImageCropperView : View {
     /**
      * This method keep the focus of the drawable image while it's scaling
      */
-    private fun setScaleKeepingFocus(focusX: Float, focusY: Float) {
-
-        /*val focusRatioX = (focusX - rectF.left) / rectF.width()
-        val focusRatioY = (focusY - rectF.top) / rectF.height()
+    private fun scaleImageKeepingFocus() {
+        val focusRatioX = (mScaleFocusX - rectF.left) / rectF.width()
+        val focusRatioY = (mScaleFocusY - rectF.top) / rectF.height()
 
         updateBitmapDrawable()
-        updateGridDrawable()*/
+        updateGridDrawable()
 
-        //val scaledFocusX = rectF.left + focusRatioX * rectF.width()
-        //val scaledFocusY = rectF.top + focusRatioY * rectF.height()
+        val scaledFocusX = rectF.left + focusRatioX * rectF.width()
+        val scaledFocusY = rectF.top + focusRatioY * rectF.height()
 
-        //rectF.left += focusX - scaledFocusX
-        //rectF.top += focusY - scaledFocusY
-
-        invalidate()
+        //Add the difference between midpoint and scaledMidPoint
+        rectF.left += mScaleFocusX - scaledFocusX
+        rectF.top += mScaleFocusY - scaledFocusY
     }
 
 
