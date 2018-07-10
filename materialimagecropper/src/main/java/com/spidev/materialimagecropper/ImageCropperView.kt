@@ -408,16 +408,17 @@ class ImageCropperView : View {
      * and only if the bitmap drawable is not bigger than the view.
      */
     private fun measureOverScrollX(): Float {
-        // If drawable image left side is more to the right than left side of the view
-        // Then we have internal difference between view left side and drawable left side
-        // and we returned that difference
+        //return distance between center points of bitmapDrawable and Square View
+        if (rectF.width() <= viewWidth) {
+            return rectF.centerX() - viewWidth / 2
+        }
+
+        //return distance between left side of view(0) and left side of bitmapDrawable
         if (rectF.left > 0) {
             return rectF.left
         }
 
-        // If drawable image right side is more to the left than right side of the view
-        // Then we have internal difference between view right side and drawable right side
-        // and we returned that difference
+        // return distance between right side of square view(width of view) and right side of bitmapDrawable
         if (rectF.right < viewWidth) {
             return rectF.right - viewWidth
         }
@@ -430,11 +431,18 @@ class ImageCropperView : View {
      * return to it's position through animator.
      * This method evaluate four mains scenarios for example:
      * (1) If drawable image height is equals or smaller than view height
-     * (2) If drawable image height is bigger than view height
      * (3) If drawable image top side is more to the bottom than top side of the view
      * (4) If drawable image bottom side is more to the top than bottom side of the view
      */
     private fun measureOverScrollY(): Float {
+        // If drawable image height is equals or smaller than view height
+        // Then we have to return the distance between the CENTER POINTS
+        // of bitmapDrawable and the square view only in the Y-axis
+        // with the distance we can return the bitmapDrawable to the center position of the VIEW
+        if (rectF.height() <= viewHeight) {
+            return rectF.centerY() - viewHeight / 2
+        }
+
         // If drawable image top side is more to the bottom than top side of the view
         // Then we have internal difference between view top side and drawable top side
         // and we returned that difference
@@ -543,58 +551,24 @@ class ImageCropperView : View {
         //(1)RETURN TO ORIGINAL POSITION IF USER MOVEMENT MORE THAN VIEW LIMIT
         val overScrollX = measureOverScrollX()
         val overScrollY = measureOverScrollY()
+
         rectF.left -= overScrollX * animatedValue
         rectF.top -= overScrollY * animatedValue
 
-        //Don't put up updateGridDrawable onDraw() method, animation doesn't work
-        //Show grid while with animation image is settling to original position
-        updateGridDrawable()
-        invalidate()
-
-
-        //(2)GO BACK TO MAXIMUM OR MINIMUM SCALE
-
-/*
-        //setScaleKeepingFocus(mScaleFocusX, mScaleFocusY)
-
-
-        Log.e("ORIGINAL-overScrollX", "${rectF.left}")
-        Log.e("ORIGINAL-overScrollY", "${rectF.top}")
-
-
-        //(2)We return to the initial scale of the drawable image*
-        val overScale = measureOverScale()
-
-        Log.e("SETTLING-BITMAPSCALE", " $bitmapScale")
-        Log.e("SETTLING-OVERSCALE", " $overScale")
-        val targetScale = bitmapScale / overScale
-        //Log.e("SETTLING-TARGETSCALE"," $targetScale")
-
-
-        //val newScale = (1 - animatedValue) * bitmapScale + animatedValue * 3
-
-
-        //val newScale = bitmapScale - ((bitmapScale - MAXIMUM_ALLOWED_SCALE) * animatedValue)
-
-
-        if (overScale > 1f) {
-            bitmapScale -= ((bitmapScale - MAXIMUM_ALLOWED_SCALE) * animatedValue)
-        } else if (overScale == 1f) {
-
-        } else {
-            bitmapScale += (( MINIMUM_ALLOWED_SCALE - bitmapScale) * animatedValue)
+        //(2) UNSCALED THE IMAGE KEEPING THE FOCUS
+        when{
+            bitmapScale > MAXIMUM_ALLOWED_SCALE -> {
+                bitmapScale -= ((bitmapScale - MAXIMUM_ALLOWED_SCALE) * animatedValue)
+                scaleImageKeepingFocus()
+            }
+            bitmapScale < MINIMUM_ALLOWED_SCALE -> {
+                bitmapScale += ((MINIMUM_ALLOWED_SCALE - bitmapScale) * animatedValue)
+                scaleImageKeepingFocus()
+            }
         }
 
-
-        Log.e("SETTLING-TARGETSCALE", " $bitmapScale")
-        //Log.e("SETTLING-calculate"," ${(1 - animatedValue) * bitmapScale} + ${animatedValue * targetScale} = ${newScale}")
-
-
-        //bitmapScale = newScale
-
-        //setScaleKeepingFocus(mScaleFocusX, mScaleFocusY)
-        //updateGridDrawable()
-        //invalidate()*/
+        updateGridDrawable()
+        invalidate()
     }
 
     /**
@@ -606,6 +580,19 @@ class ImageCropperView : View {
 
         updateBitmapDrawable()
         updateGridDrawable()
+
+        val scaledFocusX = rectF.left + focusRatioX * rectF.width()
+        val scaledFocusY = rectF.top + focusRatioY * rectF.height()
+
+        //Add the difference between midpoint and scaledMidPoint
+        rectF.left += mScaleFocusX - scaledFocusX
+        rectF.top += mScaleFocusY - scaledFocusY
+    }
+
+    private fun scaleImageKeepingFocus1(scale: Float) {
+        val focusRatioX = (mScaleFocusX - rectF.left) / rectF.width()
+        val focusRatioY = (mScaleFocusY - rectF.top) / rectF.height()
+
 
         val scaledFocusX = rectF.left + focusRatioX * rectF.width()
         val scaledFocusY = rectF.top + focusRatioY * rectF.height()
