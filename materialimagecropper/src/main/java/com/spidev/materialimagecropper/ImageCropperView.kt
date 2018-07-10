@@ -14,6 +14,7 @@ import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.widget.Toast
+import javax.security.auth.login.LoginException
 
 /**
  * Created by Carlos Leonardo Camilo Vargas Huamán on 8/13/17.
@@ -190,8 +191,8 @@ class ImageCropperView : View {
             }
         }
         Log.e("IMAGE-SCALE", "$bitmapScale")
-        Log.e("IMAGE-WIDTH SCALED", "${getScaledBitmapWidth(bitmapWidth, bitmapScale)}")
-        Log.e("IMAGE-HEIGHT SCALED", "${getScaledBitmapHeight(bitmapHeight, bitmapScale)}")
+        Log.e("IMAGE-WIDTH-SCALED", "${getScaledBitmapWidth(bitmapWidth, bitmapScale)}")
+        Log.e("IMAGE-HEIGHT-SCALED", "${getScaledBitmapHeight(bitmapHeight, bitmapScale)}")
     }
 
     /**
@@ -225,7 +226,6 @@ class ImageCropperView : View {
             bitmapHeight * bitmapScale
 
     private fun updateBitmapDrawable() {
-        Log.e("rectf-top", "$bitmapDisplacementInTop")
         rectF.left = bitmapDisplacementInLeft
         rectF.top = bitmapDisplacementInTop
         rectF.right = rectF.left + getScaledBitmapWidth(bitmapWidth, bitmapScale)
@@ -348,6 +348,7 @@ class ImageCropperView : View {
      * Don't forget that the invalidate() method call this method
      */
     override fun onDraw(canvas: Canvas) {
+        Log.e("DRAWW","DRAWWW")
         super.onDraw(canvas)
         updateBitmapDrawable()
         displayBitmapDrawable()
@@ -362,7 +363,7 @@ class ImageCropperView : View {
      * We cannot call this method directly in the onDraw() method because {@link GridDrawable.setBounds}
      * call an animator and internally call the {@link GridDrawable.invalidateSelf()} which call onDraw() again.
      */
-    private fun displayGridDrawable(rectF: RectF) {
+    private fun updateGridLayout(rectF: RectF) {
         gridRectF.set(rectF.left, rectF.top, rectF.right, rectF.bottom)
         gridRectF.intersect(0f, 0f, viewWidth, viewHeight)
         gridDrawable.setBounds(gridRectF.left.toInt(), gridRectF.top.toInt(), gridRectF.right.toInt(), gridRectF.bottom.toInt())
@@ -389,9 +390,7 @@ class ImageCropperView : View {
 
         when (event.actionMasked) {
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_OUTSIDE -> {
-
-                Log.e("ANIMATOR", "ANIMATOR $mAnimator.sta")
-                mAnimator!!.start()
+                mAnimator.start()
             }
         }
         return true
@@ -418,23 +417,11 @@ class ImageCropperView : View {
     }
 
     /**
-     * This method is called when the use scroll the drawable image and when the drawable image
-     * return to it's position through animator.
-     * This method evaluate four mains scenarios for example:
-     * (1) If drawable image width is equals or smaller than view width
-     * (2) If drawable image width is bigger than view width
-     * (3) If drawable image left side is more to the right than left side of the view
-     * (4) If drawable image right side is more to the left than right side of the view
+     * Returns the difference between one of the the image sides and the respective view side
+     * for example: left (bitmapDrawable) and left (View)
+     * and only if the bitmap drawable is not bigger than the view.
      */
     private fun measureOverScrollX(): Float {
-
-        // If drawable image width is equals or smaller than view width
-        // Then we have to return the 'distance between the CENTER POINTS of the drawable image and the view'
-        // only in the X-axis
-        if (rectF.width() <= viewWidth) {
-            return rectF.centerX() - viewWidth / 2
-        }
-
         // If drawable image width is bigger than view width
         // Then we don't have any internal difference of the x-axis that's why we return 0
         if (rectF.left <= 0 && rectF.right >= viewWidth) {
@@ -468,14 +455,6 @@ class ImageCropperView : View {
      * (4) If drawable image bottom side is more to the top than bottom side of the view
      */
     private fun measureOverScrollY(): Float {
-
-        // If drawable image height is equals or smaller than view height
-        // Then we have to return the 'distance between the CENTER POINTS of the drawable image and the view'
-        // only in the Y-axis
-        if (rectF.height() <= viewHeight) {
-            return rectF.centerY() - viewHeight / 2
-        }
-
         // If drawable image height is bigger than view height
         // Then we don't have any internal difference of the y-axis that's why we return 0
         if (rectF.top <= 0 && rectF.bottom >= viewHeight) {
@@ -529,7 +508,7 @@ class ImageCropperView : View {
             bitmapDisplacementInLeft += mDistanceX
             bitmapDisplacementInTop += mDistanceY
 
-            displayGridDrawable(rectF)
+            updateGridLayout(rectF)
 
             invalidate()
             return true
@@ -541,7 +520,7 @@ class ImageCropperView : View {
 
     /**
      * This listener reacts when the user touch the drawable image with 2 or more fingers
-     * with this listener we can handle the zoom in and zoom out of the image
+     * with this listener we can handle the zoom in and zoom out of the imageR
      */
     private var onScaleGestureListener = object : ScaleGestureDetector.OnScaleGestureListener {
         override fun onScaleBegin(detector: ScaleGestureDetector?): Boolean {
@@ -552,19 +531,20 @@ class ImageCropperView : View {
         }
 
         override fun onScale(detector: ScaleGestureDetector): Boolean {
-            //tiende a crecer
-            //overScale = bitmapScale / 0.8
-            val overScale = measureOverScale()
+            //detector.scaleFactor by default start in 1 and changes when it's expanded or collapsed then return to 1
+            //The faster I expand, the faster the value increases 1 -> 1.1 -> ... -> 1.5
+            //The faster I collapse, the faster the value decreases 1 -> 0.9 -> ... -> 0.7
+            bitmapScale *= detector.scaleFactor
 
-            //detector.scaleFactor -> when expanding -> 1.000
-            //detector.scaleFactor -> when collapsing -> 0.9
-            val scale = applyOverScaleFix(detector.scaleFactor, overScale)
-
-            //Don't forget that focusX and focusY changes
-            //detector.focusX and detector.focusY -> the focal point between each of the pointer forming the gesture
+            //detector.focusX and detector.focusY return the midpoint between two fingers on the VIEW,
+            //not the image because this listener is apply to the VIEW
+            //finger1 -> x1, y1 -> (0,0)
+            //finger2 -> x2, y2 -> (1440,0)
+            //midpoint -> focusX, focusY -> (0, 720)
             mScaleFocusX = detector.focusX
             mScaleFocusY = detector.focusY
-            setScaleKeepingFocus(bitmapScale * scale, mScaleFocusX, mScaleFocusY)
+
+            setScaleKeepingFocus(mScaleFocusX, mScaleFocusY)
 
             invalidate()
             return true
@@ -572,15 +552,50 @@ class ImageCropperView : View {
     }
 
     /**
+     * Listener for settling drawable image to original position after user ACTION UP
+     * We manage two main behaviors
+     * (1)Return to the initial position of the image
+     * (2)Return to the initial scale of the image
+     */
+    private var onSettlingAnimatorUpdateListener = ValueAnimator.AnimatorUpdateListener { animation ->
+
+        //animatedValue starts in 0 and varies between 0.0 ... 1.0 in a specific time assigned to mAnimator
+        val animatedValue = animation.animatedValue as Float
+
+        //(1)We return to the initial position of the drawable image*
+        val overScrollX = measureOverScrollX()
+        val overScrollY = measureOverScrollY()
+        bitmapDisplacementInLeft -= overScrollX * animatedValue
+        bitmapDisplacementInTop -= overScrollY * animatedValue
+
+        updateGridLayout(rectF)
+        invalidate()
+
+        Log.e("ORIGINAL-overScrollX","${bitmapDisplacementInLeft}")
+        Log.e("ORIGINAL-overScrollY","${bitmapDisplacementInTop}")
+
+
+        //(2)We return to the initial scale of the drawable image*
+        val overScale = measureOverScale()
+
+        Log.e("OVERSCALE","OVERSCALE $overScale")
+        /*val targetScale = bitmapScale / overScale
+        val newScale = (1 - animatedValue) * bitmapScale + animatedValue * targetScale
+
+        bitmapScale = newScale
+
+        setScaleKeepingFocus(mScaleFocusX, mScaleFocusY)
+        updateGridLayout(rectF)
+        invalidate()*/
+    }
+
+    /**
      * This method keep the focus of the drawable image while it's scaling
      */
-    private fun setScaleKeepingFocus(scale: Float, focusX: Float, focusY: Float) {
-        updateBitmapDrawable()
+    private fun setScaleKeepingFocus(focusX: Float, focusY: Float) {
 
         val focusRatioX = (focusX - rectF.left) / rectF.width()
         val focusRatioY = (focusY - rectF.top) / rectF.height()
-
-        bitmapScale = scale
 
         updateBitmapDrawable()
 
@@ -591,38 +606,6 @@ class ImageCropperView : View {
         bitmapDisplacementInTop += focusY - scaledFocusY
 
         invalidate()
-    }
-
-    /**
-     * Returning the scale
-     */
-    private fun applyOverScaleFix(scaleFactor: Float, oveScale: Float): Float {
-        var mScaleFactor = scaleFactor
-        var newOverScale = oveScale
-        if (newOverScale == 1f) {
-            return mScaleFactor
-        }
-
-        if (newOverScale > 1) {
-            newOverScale = 1f / newOverScale
-        }
-
-        var wentOverScaleRatio = (newOverScale - MAXIMUM_OVER_SCALE) / (1 - MAXIMUM_OVER_SCALE)
-
-        if (wentOverScaleRatio < 0f) {
-            wentOverScaleRatio = 0f
-        }
-
-        // 1 -> scale , 0 -> 1
-        // scale * f(1) = scale
-        // scale * f(0) = 1
-
-        // f(1) = 1
-        // f(0) = 1/scale
-
-        mScaleFactor *= wentOverScaleRatio + (1 - wentOverScaleRatio) / mScaleFactor
-
-        return mScaleFactor
     }
 
     /**
@@ -637,33 +620,6 @@ class ImageCropperView : View {
             bitmapScale > MAXIMUM_ALLOWED_SCALE -> bitmapScale / MAXIMUM_ALLOWED_SCALE
             else -> 1f
         }
-    }
-
-    /**
-     * Listener for settling drawable image after user ACTION UP
-     * We manage two main behaviors
-     * (1)Return to the initial position of the image
-     * (2)Return to the initial scale of the image
-     */
-    private var onSettlingAnimatorUpdateListener = ValueAnimator.AnimatorUpdateListener { animation ->
-
-        val animatedValue = animation.animatedValue as Float
-
-        //(1)We return to the initial position of the drawable image*
-        val overScrollX = measureOverScrollX()
-        val overScrollY = measureOverScrollY()
-        bitmapDisplacementInLeft -= overScrollX * animatedValue
-        bitmapDisplacementInTop -= overScrollY * animatedValue
-
-        // Log.e("mDisplayDrawableTop ","mDisplayDrawableTop " +mDisplayDrawableTop)
-        //(2)We return to the initial scale of the drawable image*
-        val overScale = measureOverScale()
-        val targetScale = bitmapScale / overScale
-        val newScale = (1 - animatedValue) * bitmapScale + animatedValue * targetScale
-
-        setScaleKeepingFocus(newScale, mScaleFocusX, mScaleFocusY)
-        displayGridDrawable(rectF)
-        invalidate()
     }
 
     /**
@@ -717,18 +673,25 @@ class ImageCropperView : View {
             }
         }
 
-        Log.e("CROP-y","${Math.abs(croppedBitmapDisplacementInTop.toInt())}")
-        Log.e("CROP-HEIGHT","$croppedImageHeight")
-        Log.e("CROP-BITMAP-HEIGHT","${this.bitmapDrawable!!.bitmap.height}")
+        Log.e("CROP-WIDTH-ZOOM", "${getScaledBitmapWidth(bitmapWidth, bitmapScale)}")
+        Log.e("CROP-HEIGHT-ZOOM", "${getScaledBitmapHeight(bitmapHeight, bitmapScale)}")
+        Log.e("CROP-IMAGE-SCALE", "$bitmapScale")
+        Log.e("CROP-BITMAPDRAWABLE-L ", "${rectF.left}")
+        Log.e("CROP-BITMAPDRAWABLE-T ", "${rectF.top}")
+        Log.e("CROP-BITMAPDRAWABLE-R ", "${rectF.right}")
+        Log.e("CROP-BITMAPDRAWABLE-B ", "${rectF.bottom}")
+        Log.e("CROP-y", "${Math.abs(croppedBitmapDisplacementInTop.toInt())}")
+        Log.e("CROP-HEIGHT", "$croppedImageHeight")
+        Log.e("CROP-BITMAP-HEIGHT", "${this.bitmapDrawable!!.bitmap.height}")
 
-        val bitmap = Bitmap.createBitmap(
+        /*val bitmap = Bitmap.createBitmap(
                 this.bitmapDrawable!!.bitmap,
                 Math.abs(croppedBitmapDisplacementInLeft.toInt()),
                 Math.abs(croppedBitmapDisplacementInTop.toInt()),
                 croppedImageWidth,
                 croppedImageHeight)
         val path = FileUtils.saveToFile(true, bitmap)
-        croppedBitmapCallback.onCroppedBitmapReady()
+        croppedBitmapCallback.onCroppedBitmapReady()*/
     }
 }
 
