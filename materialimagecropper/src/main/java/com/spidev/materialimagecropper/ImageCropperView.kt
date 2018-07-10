@@ -556,7 +556,7 @@ class ImageCropperView : View {
         rectF.top -= overScrollY * animatedValue
 
         //(2) UNSCALED THE IMAGE KEEPING THE FOCUS
-        when{
+        when {
             bitmapScale > MAXIMUM_ALLOWED_SCALE -> {
                 bitmapScale -= ((bitmapScale - MAXIMUM_ALLOWED_SCALE) * animatedValue)
                 scaleImageKeepingFocus()
@@ -671,16 +671,30 @@ class ImageCropperView : View {
             }
         }
 
-        Log.e("CROP-WIDTH-ZOOM", "${getScaledBitmapWidth(bitmapWidth, bitmapScale)}")
-        Log.e("CROP-HEIGHT-ZOOM", "${getScaledBitmapHeight(bitmapHeight, bitmapScale)}")
+        Log.e("CROP-WIDTH-ZOOM", "${rectF.width()}")
+        Log.e("CROP-HEIGHT-ZOOM", "${rectF.height()}")
         Log.e("CROP-IMAGE-SCALE", "$bitmapScale")
         Log.e("CROP-BITMAPDRAWABLE-L ", "${rectF.left}")
         Log.e("CROP-BITMAPDRAWABLE-T ", "${rectF.top}")
-        Log.e("CROP-BITMAPDRAWABLE-R ", "${rectF.right}")
-        Log.e("CROP-BITMAPDRAWABLE-B ", "${rectF.bottom}")
         Log.e("CROP-y", "${Math.abs(croppedBitmapDisplacementInTop.toInt())}")
         Log.e("CROP-HEIGHT", "$croppedImageHeight")
         Log.e("CROP-BITMAP-HEIGHT", "${this.bitmapDrawable!!.bitmap.height}")
+
+        val _rectF = RectF()
+        _rectF.set(this.rectF.left, this.rectF.top, this.rectF.right, this.rectF.bottom)
+        _rectF.intersect(0f, 0f, viewWidth, viewHeight)
+
+
+        val bitmap = Bitmap.createBitmap(
+                this.bitmapDrawable!!.bitmap,
+                Math.abs((rectF.left * bitmapScale).toInt()),
+                Math.abs((rectF.top * bitmapScale).toInt()),
+                rectF.width().toInt(),
+                rectF.width().toInt())
+
+
+        val path = FileUtils.saveToFile(true, bitmap)
+        croppedBitmapCallback.onCroppedBitmapReady()
 
         /*val bitmap = Bitmap.createBitmap(
                 this.bitmapDrawable!!.bitmap,
@@ -691,6 +705,7 @@ class ImageCropperView : View {
         val path = FileUtils.saveToFile(true, bitmap)
         croppedBitmapCallback.onCroppedBitmapReady()*/
     }
+
 }
 
 
