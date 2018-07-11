@@ -5,10 +5,10 @@
 </p>
 
 <p align="center">
-    <img src="screenshots/Screenshot1.png" alt="icon" width="22%"/>
-    <img src="screenshots/Screenshot2.png" alt="icon" width="22%"/>
-    <img src="screenshots/Screenshot3.png" alt="icon" width="22%"/>
-    <img src="screenshots/Screenshot4.png" alt="icon" width="22%"/>
+    <img src="screenshots/jenkins_expanded.png" alt="icon" width="22%"/>
+    <img src="screenshots/jenkins_original.png" alt="icon" width="22%"/>
+    <img src="screenshots/jetpack_movement.png" alt="icon" width="22%"/>
+    <img src="screenshots/kotlin_expanded.png" alt="icon" width="22%"/>
 </p>
 
 ### DESCRIPTION
