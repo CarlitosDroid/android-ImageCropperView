@@ -13,8 +13,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        app:gridLineBorderColor="@color/md_red_500"
+        app:gridLineBorderColor="@color/md_orange_500"
         app:gridLineBorderStrokeWidth="5"
-        app:gridLineColor="@color/md_white_1000"
+        app:gridLineColor="@color/md_blue_500"
         app:gridLineStrokeWidth="5" />
 </FrameLayout>
