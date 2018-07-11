@@ -1,13 +1,22 @@
-# Image Cropper View Widget
+<h1 align="center">Image Cropper View Widget</h1>
 
+<p align="center">
+    <img src="screenshots/image_cropper_view.png" alt="icon" width="25%"/>
+</p>
 
+<p align="center">
+    <img src="screenshots/Screenshot1.png" alt="icon" width="22%"/>
+    <img src="screenshots/Screenshot2.png" alt="icon" width="22%"/>
+    <img src="screenshots/Screenshot3.png" alt="icon" width="22%"/>
+    <img src="screenshots/Screenshot4.png" alt="icon" width="22%"/>
+</p>
 
-##DESCRIPTION
+### DESCRIPTION
 Image Cropper View Widget give the ability to move, expand and crop you favorite image,
 you will also have a grid that helps you to place your image at any position you prefer.
 
 
-##FEATURES
+### FEATURES
 ```xml
 <com.spidev.materialimagecropper.ImageCropperView
         android:id="@+id/icvPicture"
@@ -20,7 +29,7 @@ you will also have a grid that helps you to place your image at any position you
         app:gridLineStrokeWidth="5" />
 ```
 
-##USAGE
+### USAGE
 Custom attributes for `ImageCropperView`:
 
 | Attribute | Description |
