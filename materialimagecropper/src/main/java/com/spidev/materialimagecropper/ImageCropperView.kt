@@ -648,6 +648,14 @@ class ImageCropperView : View {
         val croppedBitmapDisplacementInTop: Float
 
         when {
+            bitmapDrawableRectF.width() < viewWidth -> {
+                croppedImageWidth = bitmapDrawable!!.bitmap.width
+                croppedImageHeight = viewHeight.toInt()
+                croppedBitmapDisplacementInLeft = 0f
+                croppedBitmapDisplacementInTop = bitmapDrawableRectF.top / bitmapScale
+            }
+
+
         //width is bigger than height
             getBitmapDrawableRatio() >= 1f -> {
                 croppedImageWidth = getHeightOfCroppedBitmap().toInt()
@@ -657,10 +665,10 @@ class ImageCropperView : View {
             }
         //width and height are equal
             getBitmapDrawableRatio() == 1f -> {
-                croppedImageWidth = 0
-                croppedImageHeight = 0
-                croppedBitmapDisplacementInLeft = 0f
-                croppedBitmapDisplacementInTop = 0f
+                croppedImageWidth = getWidthOfCroppedBitmap().toInt()
+                croppedImageHeight = getHeightOfCroppedBitmap().toInt()
+                croppedBitmapDisplacementInLeft = bitmapDrawableRectF.width()
+                croppedBitmapDisplacementInTop = bitmapDrawableRectF.height()
             }
         //height is bigger than width
             else -> {
@@ -671,17 +679,30 @@ class ImageCropperView : View {
             }
         }
 
+
         Log.e("CROP-WIDTH-ZOOM", "${bitmapDrawableRectF.width()}")
         Log.e("CROP-HEIGHT-ZOOM", "${bitmapDrawableRectF.height()}")
+        Log.e("CROP-ZOOM-X ", "${bitmapDrawableRectF.left}")
+        Log.e("CROP-ZOOM-Y ", "${bitmapDrawableRectF.top}")
         Log.e("CROP-IMAGE-SCALE", "$bitmapScale")
-        Log.e("CROP-BITMAPDRAWABLE-L ", "${bitmapDrawableRectF.left}")
-        Log.e("CROP-BITMAPDRAWABLE-T ", "${bitmapDrawableRectF.top}")
+
+        Log.e("----------","----------")
+
+        Log.e("CROP-WIDTH-BITMAP", "${bitmapDrawable!!.bitmap.width}")
+        Log.e("CROP-HEIGHT-BITMAP", "${bitmapDrawable!!.bitmap.height}")
+        Log.e("CROP-BITMAP-X ", "${croppedBitmapDisplacementInLeft}")
+        Log.e("CROP-BITMAP-Y ", "${croppedBitmapDisplacementInTop}")
+        Log.e("CROP-BITMAP-WIDTH ", "${croppedImageWidth}")
+        Log.e("CROP-BITMAP-HEIGHT ", "${croppedImageHeight}")
 
 
+
+
+/*
         Log.e("CROP-POSITION-x ", "${croppedBitmapDisplacementInLeft}")
         Log.e("CROP-POSITION-y ", "${croppedBitmapDisplacementInTop}")
         Log.e("CROP-WIDTH-L ", "${croppedImageWidth.toInt()}")
-        Log.e("CROP-HEIGHT-R ", "${croppedImageHeight.toInt()}")
+        Log.e("CROP-HEIGHT-R ", "${croppedImageHeight.toInt()}")*/
 
         val _rectF = RectF()
         _rectF.set(this.bitmapDrawableRectF.left, this.bitmapDrawableRectF.top, this.bitmapDrawableRectF.right, this.bitmapDrawableRectF.bottom)
