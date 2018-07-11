@@ -650,11 +650,18 @@ class ImageCropperView : View {
         when {
         //width is bigger than height
             getBitmapDrawableRatio() >= 1f -> {
-                if (bitmapDrawableRectF.height() < viewHeight && bitmapDrawableRectF.width() >= viewWidth) {
-                    croppedImageWidth = getWidthOfCroppedBitmap().toInt()
-                    croppedImageHeight = bitmapDrawable!!.bitmap.height
-                    croppedBitmapDisplacementInLeft = bitmapDrawableRectF.left / bitmapScale
-                    croppedBitmapDisplacementInTop = 0f
+                if (bitmapDrawableRectF.height() < viewHeight) {
+                    if (bitmapDrawableRectF.width() >= viewWidth) {
+                        croppedImageWidth = getWidthOfCroppedBitmap().toInt()
+                        croppedImageHeight = bitmapDrawable!!.bitmap.height
+                        croppedBitmapDisplacementInLeft = bitmapDrawableRectF.left / bitmapScale
+                        croppedBitmapDisplacementInTop = 0f
+                    } else {
+                        croppedImageWidth = bitmapDrawable!!.bitmap.width
+                        croppedImageHeight = bitmapDrawable!!.bitmap.height
+                        croppedBitmapDisplacementInLeft = 0f
+                        croppedBitmapDisplacementInTop = 0f
+                    }
                 } else {
                     croppedImageWidth = getHeightOfCroppedBitmap().toInt()
                     croppedImageHeight = getHeightOfCroppedBitmap().toInt()
@@ -678,11 +685,18 @@ class ImageCropperView : View {
             }
         //height is bigger than width
             else -> {
-                if (bitmapDrawableRectF.width() < viewWidth && bitmapDrawableRectF.height() >= viewHeight) {
-                    croppedImageWidth = bitmapDrawable!!.bitmap.width
-                    croppedImageHeight = getHeightOfCroppedBitmap().toInt()
-                    croppedBitmapDisplacementInLeft = 0f
-                    croppedBitmapDisplacementInTop = bitmapDrawableRectF.top / bitmapScale
+                if (bitmapDrawableRectF.width() < viewWidth) {
+                    if (bitmapDrawableRectF.height() >= viewHeight) {
+                        croppedImageWidth = bitmapDrawable!!.bitmap.width
+                        croppedImageHeight = getHeightOfCroppedBitmap().toInt()
+                        croppedBitmapDisplacementInLeft = 0f
+                        croppedBitmapDisplacementInTop = bitmapDrawableRectF.top / bitmapScale
+                    } else {
+                        croppedImageWidth = bitmapDrawable!!.bitmap.width
+                        croppedImageHeight = bitmapDrawable!!.bitmap.height
+                        croppedBitmapDisplacementInLeft = 0f
+                        croppedBitmapDisplacementInTop = 0f
+                    }
                 } else {
                     croppedImageWidth = getWidthOfCroppedBitmap().toInt()
                     croppedImageHeight = getWidthOfCroppedBitmap().toInt()
@@ -709,12 +723,6 @@ class ImageCropperView : View {
         Log.e("CROP-BITMAP-Y ", "${croppedBitmapDisplacementInTop}")
 
 
-/*
-        Log.e("CROP-POSITION-x ", "${croppedBitmapDisplacementInLeft}")
-        Log.e("CROP-POSITION-y ", "${croppedBitmapDisplacementInTop}")
-        Log.e("CROP-WIDTH-L ", "${croppedImageWidth.toInt()}")
-        Log.e("CROP-HEIGHT-R ", "${croppedImageHeight.toInt()}")*/
-
         val _rectF = RectF()
         _rectF.set(this.bitmapDrawableRectF.left, this.bitmapDrawableRectF.top, this.bitmapDrawableRectF.right, this.bitmapDrawableRectF.bottom)
         _rectF.intersect(0f, 0f, viewWidth, viewHeight)
@@ -727,18 +735,8 @@ class ImageCropperView : View {
                 croppedImageWidth,
                 croppedImageHeight)
 
-
         val path = FileUtils.saveToFile(true, bitmap)
         croppedBitmapCallback.onCroppedBitmapReady()
-
-        /*val bitmap = Bitmap.createBitmap(
-                this.bitmapDrawable!!.bitmap,
-                Math.abs(croppedBitmapDisplacementInLeft.toInt()),
-                Math.abs(croppedBitmapDisplacementInTop.toInt()),
-                croppedImageWidth,
-                croppedImageHeight)
-        val path = FileUtils.saveToFile(true, bitmap)
-        croppedBitmapCallback.onCroppedBitmapReady()*/
     }
 
     fun getWidthOfCroppedBitmap(): Float {
@@ -752,8 +750,6 @@ class ImageCropperView : View {
         val ratioY = viewHeight / bitmapDrawableRectF.height()
         return bitmapDrawable!!.bitmap.height * ratioY
     }
-
-
 }
 
 
