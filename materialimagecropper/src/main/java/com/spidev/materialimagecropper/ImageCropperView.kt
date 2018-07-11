@@ -648,34 +648,47 @@ class ImageCropperView : View {
         val croppedBitmapDisplacementInTop: Float
 
         when {
-            bitmapDrawableRectF.width() < viewWidth -> {
-                croppedImageWidth = bitmapDrawable!!.bitmap.width
-                croppedImageHeight = viewHeight.toInt()
-                croppedBitmapDisplacementInLeft = 0f
-                croppedBitmapDisplacementInTop = bitmapDrawableRectF.top / bitmapScale
-            }
-
-
         //width is bigger than height
             getBitmapDrawableRatio() >= 1f -> {
-                croppedImageWidth = getHeightOfCroppedBitmap().toInt()
-                croppedImageHeight = getHeightOfCroppedBitmap().toInt()
-                croppedBitmapDisplacementInLeft = bitmapDrawableRectF.left / bitmapScale
-                croppedBitmapDisplacementInTop = bitmapDrawableRectF.top / bitmapScale
+                if (bitmapDrawableRectF.height() < viewHeight && bitmapDrawableRectF.width() >= viewWidth) {
+                    croppedImageWidth = getWidthOfCroppedBitmap().toInt()
+                    croppedImageHeight = bitmapDrawable!!.bitmap.height
+                    croppedBitmapDisplacementInLeft = bitmapDrawableRectF.left / bitmapScale
+                    croppedBitmapDisplacementInTop = 0f
+                } else {
+                    croppedImageWidth = getHeightOfCroppedBitmap().toInt()
+                    croppedImageHeight = getHeightOfCroppedBitmap().toInt()
+                    croppedBitmapDisplacementInLeft = bitmapDrawableRectF.left / bitmapScale
+                    croppedBitmapDisplacementInTop = bitmapDrawableRectF.top / bitmapScale
+                }
             }
         //width and height are equal
             getBitmapDrawableRatio() == 1f -> {
-                croppedImageWidth = getWidthOfCroppedBitmap().toInt()
-                croppedImageHeight = getHeightOfCroppedBitmap().toInt()
-                croppedBitmapDisplacementInLeft = bitmapDrawableRectF.width()
-                croppedBitmapDisplacementInTop = bitmapDrawableRectF.height()
+                if (bitmapDrawableRectF.width() <= viewWidth && bitmapDrawableRectF.height() <= viewHeight) {
+                    croppedImageWidth = bitmapDrawable!!.bitmap.width
+                    croppedImageHeight = bitmapDrawable!!.bitmap.height
+                    croppedBitmapDisplacementInLeft = 0f
+                    croppedBitmapDisplacementInTop = 0f
+                } else {
+                    croppedImageWidth = getWidthOfCroppedBitmap().toInt()
+                    croppedImageHeight = getHeightOfCroppedBitmap().toInt()
+                    croppedBitmapDisplacementInLeft = bitmapDrawableRectF.width()
+                    croppedBitmapDisplacementInTop = bitmapDrawableRectF.height()
+                }
             }
         //height is bigger than width
             else -> {
-                croppedImageWidth = getWidthOfCroppedBitmap().toInt()
-                croppedImageHeight = getWidthOfCroppedBitmap().toInt()
-                croppedBitmapDisplacementInLeft = bitmapDrawableRectF.left / bitmapScale
-                croppedBitmapDisplacementInTop = bitmapDrawableRectF.top / bitmapScale
+                if (bitmapDrawableRectF.width() < viewWidth && bitmapDrawableRectF.height() >= viewHeight) {
+                    croppedImageWidth = bitmapDrawable!!.bitmap.width
+                    croppedImageHeight = getHeightOfCroppedBitmap().toInt()
+                    croppedBitmapDisplacementInLeft = 0f
+                    croppedBitmapDisplacementInTop = bitmapDrawableRectF.top / bitmapScale
+                } else {
+                    croppedImageWidth = getWidthOfCroppedBitmap().toInt()
+                    croppedImageHeight = getWidthOfCroppedBitmap().toInt()
+                    croppedBitmapDisplacementInLeft = bitmapDrawableRectF.left / bitmapScale
+                    croppedBitmapDisplacementInTop = bitmapDrawableRectF.top / bitmapScale
+                }
             }
         }
 
@@ -686,16 +699,14 @@ class ImageCropperView : View {
         Log.e("CROP-ZOOM-Y ", "${bitmapDrawableRectF.top}")
         Log.e("CROP-IMAGE-SCALE", "$bitmapScale")
 
-        Log.e("----------","----------")
+        Log.e("----------", "----------")
 
-        Log.e("CROP-WIDTH-BITMAP", "${bitmapDrawable!!.bitmap.width}")
-        Log.e("CROP-HEIGHT-BITMAP", "${bitmapDrawable!!.bitmap.height}")
+        Log.e("CROP-WIDTH-BITMAP", "ORIGINAL ${bitmapDrawable!!.bitmap.width}")
+        Log.e("CROP-HEIGHT-BITMAP", "ORIGINAL ${bitmapDrawable!!.bitmap.height}")
+        Log.e("CROP-BITMAP-WIDTH ", "SCALED ${croppedImageWidth}")
+        Log.e("CROP-BITMAP-HEIGHT ", "SCALED ${croppedImageHeight}")
         Log.e("CROP-BITMAP-X ", "${croppedBitmapDisplacementInLeft}")
         Log.e("CROP-BITMAP-Y ", "${croppedBitmapDisplacementInTop}")
-        Log.e("CROP-BITMAP-WIDTH ", "${croppedImageWidth}")
-        Log.e("CROP-BITMAP-HEIGHT ", "${croppedImageHeight}")
-
-
 
 
 /*
@@ -741,6 +752,7 @@ class ImageCropperView : View {
         val ratioY = viewHeight / bitmapDrawableRectF.height()
         return bitmapDrawable!!.bitmap.height * ratioY
     }
+
 
 }
 
