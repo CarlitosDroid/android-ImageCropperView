@@ -14,7 +14,6 @@ import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.widget.Toast
-import javax.security.auth.login.LoginException
 
 /**
  * Created by Carlos Leonardo Camilo Vargas Huamán on 8/13/17.
@@ -602,24 +601,6 @@ class ImageCropperView : View {
         bitmapDrawableRectF.top += mScaleFocusY - scaledFocusY
     }
 
-
-    /**
-     * Nuestra imagen puede sobreescalarse un valor entre 0.83f
-     * for instance:
-     * esto hace que si nuestra scala inicial es 1.5 aumente hasta 1.8
-     * 1.5 / 0.83 = 1.8
-     */
-    private fun measureOverScale(): Float {
-        return when {
-            bitmapScale < MINIMUM_ALLOWED_SCALE -> bitmapScale / MINIMUM_ALLOWED_SCALE
-            bitmapScale > MAXIMUM_ALLOWED_SCALE -> {
-
-                bitmapScale / MAXIMUM_ALLOWED_SCALE
-            }
-            else -> 1f
-        }
-    }
-
     /**
      * This method is necessary if we want to create an animated drawable that extends {@Drawable}
      * Please read the official documentation
@@ -706,7 +687,6 @@ class ImageCropperView : View {
             }
         }
 
-
         Log.e("CROP-WIDTH-ZOOM", "${bitmapDrawableRectF.width()}")
         Log.e("CROP-HEIGHT-ZOOM", "${bitmapDrawableRectF.height()}")
         Log.e("CROP-ZOOM-X ", "${bitmapDrawableRectF.left}")
@@ -722,30 +702,23 @@ class ImageCropperView : View {
         Log.e("CROP-BITMAP-X ", "${croppedBitmapDisplacementInLeft}")
         Log.e("CROP-BITMAP-Y ", "${croppedBitmapDisplacementInTop}")
 
-
-        val _rectF = RectF()
-        _rectF.set(this.bitmapDrawableRectF.left, this.bitmapDrawableRectF.top, this.bitmapDrawableRectF.right, this.bitmapDrawableRectF.bottom)
-        _rectF.intersect(0f, 0f, viewWidth, viewHeight)
-
-
-        val bitmap = Bitmap.createBitmap(
+        val croppedBitmap = Bitmap.createBitmap(
                 this.bitmapDrawable!!.bitmap,
                 Math.abs(croppedBitmapDisplacementInLeft.toInt()),
                 Math.abs(croppedBitmapDisplacementInTop.toInt()),
                 croppedImageWidth,
                 croppedImageHeight)
 
-        val path = FileUtils.saveToFile(true, bitmap)
-        croppedBitmapCallback.onCroppedBitmapReady()
+        croppedBitmapCallback.onCroppedBitmapReady(croppedBitmap)
     }
 
-    fun getWidthOfCroppedBitmap(): Float {
+    private fun getWidthOfCroppedBitmap(): Float {
         //ration between bitmapDrawable width and view width
         val ratioX = viewWidth / bitmapDrawableRectF.width()
         return bitmapDrawable!!.bitmap.width * ratioX
     }
 
-    fun getHeightOfCroppedBitmap(): Float {
+    private fun getHeightOfCroppedBitmap(): Float {
         //relation between bitmapDrawable height and view height
         val ratioY = viewHeight / bitmapDrawableRectF.height()
         return bitmapDrawable!!.bitmap.height * ratioY

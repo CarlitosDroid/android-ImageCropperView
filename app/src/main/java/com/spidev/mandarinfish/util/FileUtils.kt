@@ -1,12 +1,16 @@
-package com.spidev.materialimagecropper
+package com.spidev.mandarinfish.util
 
 import android.graphics.Bitmap
 import android.os.Environment
+import android.support.media.ExifInterface
 import android.util.Log
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
+import android.media.MediaScannerConnection
+
+
 
 /**
  * @author carlosleonardocamilovargashuaman on 7/6/18.
@@ -19,7 +23,7 @@ class FileUtils {
                 "${Environment.getExternalStorageDirectory().absolutePath}/${Environment.DIRECTORY_DCIM}/ImageCropperImages"
 
 
-        fun saveToFile(isDirectory: Boolean, bitmap: Bitmap): String {
+        fun saveToFile(bitmap: Bitmap): String {
             val imageFile: File
 
             val folder = File(getImagesFolderPath())
@@ -39,7 +43,12 @@ class FileUtils {
             imageFile = File(folder, imageName)
             val fileOutputStream = FileOutputStream(imageFile)
             bitmap.compress(Bitmap.CompressFormat.JPEG, 70, fileOutputStream)
+            fileOutputStream.flush()
             fileOutputStream.close()
+            /*val newExif = ExifInterface(imageFile.absolutePath)
+            newExif.setAttribute(ExifInterface.TAG_ORIENTATION, android.media.ExifInterface.ORIENTATION_ROTATE_270.toString())
+            newExif.saveAttributes()*/
+
             return imageFile.path
         }
     }

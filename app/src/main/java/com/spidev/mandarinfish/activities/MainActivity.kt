@@ -19,13 +19,11 @@ import android.support.v4.content.FileProvider
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.widget.Toast
 import com.spidev.mandarinfish.BuildConfig
 import com.spidev.mandarinfish.R
-import com.spidev.mandarinfish.commons.Constants
 import com.spidev.mandarinfish.fragments.AppSettingsDialogFragment
-import com.spidev.materialimagecropper.FileUtils.Companion.getImagesFolderPath
+import com.spidev.mandarinfish.util.FileUtils.Companion.getImagesFolderPath
 import com.spidev.mandarinfish.util.ImagesUtil
 import kotlinx.android.synthetic.main.content_main.*
 import java.io.IOException
@@ -75,9 +73,7 @@ class MainActivity : AppCompatActivity(), AppSettingsDialogFragment.OnCameraRati
 
         fabNextActivity.setOnClickListener { _ ->
             if (galleryImageUri != null) {
-                val destinationUri = Uri.fromFile(File(externalCacheDir, "test.jpg"))
-                startMaterialImageCropperActivity(galleryImageUri!!, destinationUri)
-                //startTestActivity(galleryImageUri!!, destinationUri)
+                startMaterialImageCropperActivity(galleryImageUri!!)
             } else {
                 Toast.makeText(this, "Select a Picture from Gallery", Toast.LENGTH_SHORT).show()
             }
@@ -207,7 +203,7 @@ class MainActivity : AppCompatActivity(), AppSettingsDialogFragment.OnCameraRati
                         BuildConfig.APPLICATION_ID,
                         photoFile)
 
-                Log.e("X-PHOTOURI", "X-PHOTOURI " + photoURI)
+                Log.e("X-PHOTOURI", "X-PHOTOURI $photoURI")
 
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
                 startActivityForResult(takePictureIntent, REQUEST_TO_CAMERA_GET_FULL_SIZE_IMAGE)
@@ -243,16 +239,9 @@ class MainActivity : AppCompatActivity(), AppSettingsDialogFragment.OnCameraRati
         AppSettingsDialogFragment.newInstance(message).show(supportFragmentManager, "layout_camera_layout")
     }
 
-    private fun startMaterialImageCropperActivity(sourceUri: Uri, destinationUri: Uri) {
+    private fun startMaterialImageCropperActivity(sourceUri: Uri) {
         val intent = Intent(this, MaterialImageCropperActivity::class.java)
         intent.data = sourceUri
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, destinationUri)
-        intent.putExtra(Constants.EXTRA_PREFERRED_RATIO, Constants.DEFAULT_RATIO)
-        intent.putExtra(Constants.EXTRA_MINIMUN_RATIO, Constants.DEFAULT_MINIMUN_RATIO)
-        intent.putExtra(Constants.EXTRA_MAXIMUN_RATIO, Constants.DEFAULT_MAXIMUN_RATIO)
-        intent.putExtra(Constants.EXTRA_WIDTH_SPECIFICATION, View.MeasureSpec.makeMeasureSpec(720, View.MeasureSpec.AT_MOST))
-        intent.putExtra(Constants.EXTRA_HEIGHT_SPECIFICATION, View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
-        intent.putExtra(Constants.EXTRA_OUTPUT_QUALITY, 50)
         startActivity(intent)
     }
 
@@ -285,7 +274,7 @@ class MainActivity : AppCompatActivity(), AppSettingsDialogFragment.OnCameraRati
         val photoH: Int = bmOptions.outHeight
 
         //Determine how much to scale down the image
-        var scaleFactor: Int = Math.min(photoW / targetW, photoH / targetH)
+        val scaleFactor: Int = Math.min(photoW / targetW, photoH / targetH)
 
         //Decode the image file into a Bitmap sized to fill the View
         bmOptions.inJustDecodeBounds = false
