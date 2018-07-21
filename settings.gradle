@@ -1,1 +1,1 @@
-include ':app', ':materialimagecropper'
+include ':app', ':view'
