@@ -1,8 +1,6 @@
 <resources>
-    <string name="app_name">MaterialImageCropper</string>
+    <string name="app_name">ImageCropperView</string>
     <string name="action_settings">Settings</string>
-    <string name="title_activity_filter">FilterActivity</string>
-    <string name="title_activity_main2">Main2Activity</string>
     <string name="title_activity_material_image_cropper">MaterialImageCropperActivity</string>
     <string name="material_image_cropper_content_description">A simple view</string>
     <string name="open_settings_tap_permissions">Open Settings, then tap Permissions and turn on %1$s.</string>
