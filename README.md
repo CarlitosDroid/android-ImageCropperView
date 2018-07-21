@@ -18,7 +18,7 @@ you will also have a grid that helps you to place your image at any position you
 
 ### FEATURES
 ```xml
-<com.spidev.materialimagecropper.ImageCropperView
+<com.carlitosdroid.view.ImageCropperView
         android:id="@+id/icvPicture"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
