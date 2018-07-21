@@ -1,6 +1,10 @@
 <h1 align="center">Image Cropper View Widget</h1>
 
 <p align="center">
+    <a target="_blank" href="https://jitpack.io/#CarlitosDroid/android-ImageCropperView"><img src="https://jitpack.io/v/CarlitosDroid/android-ImageCropperView.svg"></a>
+</p>
+
+<p align="center">
     <img src="screenshots/image_cropper_view.png" alt="icon" width="25%"/>
 </p>
 
