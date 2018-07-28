@@ -10,11 +10,13 @@
 
     <com.carlitosdroid.view.ImageCropperView
         android:id="@+id/micPicture"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
         android:layout_gravity="center"
-        app:gridLineBorderColor="@color/md_orange_500"
-        app:gridLineBorderStrokeWidth="5"
-        app:gridLineColor="@color/md_blue_500"
-        app:gridLineStrokeWidth="5" />
+        android:background="@color/md_blue_50"
+        app:gridLineBorderColor="@color/md_blue_500"
+        app:gridLineBorderStrokeWidth="4"
+        app:gridLineColor="@color/md_green_200"
+        app:gridLineStrokeWidth="3"
+        app:imageAdjustType="center" />
 </FrameLayout>

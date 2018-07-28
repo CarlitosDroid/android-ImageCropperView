@@ -5,7 +5,7 @@
         <attr name="gridLineColor" format="color|reference" />
         <attr name="gridLineStrokeWidth" format="integer" />
         <attr name="gridLineBorderStrokeWidth" format="integer" />
-        <attr name="gridScaleType">
+        <attr name="imageAdjustType">
             <enum name="center" value="0" />
             <enum name="adjust" value="1" />
         </attr>

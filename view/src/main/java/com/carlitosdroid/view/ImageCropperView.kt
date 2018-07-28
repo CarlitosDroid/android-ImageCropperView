@@ -1,6 +1,7 @@
 package com.carlitosdroid.view
 
 import android.animation.ValueAnimator
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
@@ -13,7 +14,6 @@ import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.animation.DecelerateInterpolator
-import android.widget.Toast
 
 /**
  * Created by Carlos Leonardo Camilo Vargas Huamán on 8/13/17.
@@ -81,9 +81,12 @@ class ImageCropperView : View {
     private var mScaleFocusX = 0f
     private var mScaleFocusY = 0f
 
-    private var gridRectF = RectF()
+    /**
+     *
+     */
+    private var gridScaleType = DEFAULT_IMAGE_ADJUST_TYPE
 
-    private var DEFAULT_CENTER_SCALE_TYPE = 0
+    private var gridRectF = RectF()
 
     constructor(context: Context) : super(context)
 
@@ -99,7 +102,7 @@ class ImageCropperView : View {
         val a = context.obtainStyledAttributes(attrs, R.styleable.ImageCropperView, defStyleAttr, defStyleRes)
         val gridLineBorderColor = a.getColor(R.styleable.ImageCropperView_gridLineBorderColor, Color.GREEN)
         val gridLineColor = a.getColor(R.styleable.ImageCropperView_gridLineColor, Color.GRAY)
-        val gridScaleType = a.getInteger(R.styleable.ImageCropperView_gridScaleType, DEFAULT_CENTER_SCALE_TYPE)
+        gridScaleType = a.getInteger(R.styleable.ImageCropperView_imageAdjustType, DEFAULT_IMAGE_ADJUST_TYPE)
         val gridLineStrokeWidth = a.getInteger(R.styleable.ImageCropperView_gridLineStrokeWidth, 1)
         val gridLineBorderStrokeWidth = a.getInteger(R.styleable.ImageCropperView_gridLineBorderStrokeWidth, 1)
         a.recycle()
@@ -146,7 +149,9 @@ class ImageCropperView : View {
         Log.e("IMAGE-WIDTH", "$bitmapWidth")
         Log.e("IMAGE-HEIGHT", "$bitmapHeight")
         bitmapDrawable = BitmapDrawable(context.resources, bitmap)
-        centerTheScaledDrawableImage()
+
+        if (gridScaleType == DEFAULT_IMAGE_ADJUST_TYPE) centerScaledDrawableImage() else placeDrawableImageInCenter()
+
         refreshDrawable()
     }
 
@@ -158,33 +163,68 @@ class ImageCropperView : View {
      * This method adjusts the bitmap drawable to the view, and center the bitmap drawable
      * bitmap drawable -> current image
      */
-    private fun centerTheScaledDrawableImage() {
+    private fun centerScaledDrawableImage() {
         when {
         //width is bigger than height
-            getBitmapDrawableRatio() >= 1f -> {
+            getBitmapDrawableRatio() > 1f -> {
                 bitmapScale = getBitmapScale(viewHeight, bitmapHeight)
-                val scaledBitmapWidth = getScaledBitmapWidth(bitmapWidth, bitmapScale)
+                val scaledBitmapWidth = multiplyOneSideByTheScale(bitmapWidth, bitmapScale)
                 val expansion = (scaledBitmapWidth - viewWidth) / 2
                 bitmapDrawableRectF.left = -expansion
                 bitmapDrawableRectF.top = 0f
             }
-        //width and height are equal
-            getBitmapDrawableRatio() == 1f -> {
-                bitmapDrawableRectF.left = 0f
-                bitmapDrawableRectF.top = 0f
-            }
         //height is bigger than width
-            else -> {
+            getBitmapDrawableRatio() < 1f -> {
                 bitmapScale = getBitmapScale(viewWidth, bitmapWidth)
-                val scaledBitmapHeight = getScaledBitmapHeight(bitmapHeight, bitmapScale)
+                val scaledBitmapHeight = multiplyOneSideByTheScale(bitmapHeight, bitmapScale)
                 val expansion = (scaledBitmapHeight - viewHeight) / 2
                 bitmapDrawableRectF.left = 0f
                 bitmapDrawableRectF.top = -expansion
             }
+        //width and height are equal
+            else -> {
+                bitmapScale = getBitmapScale(viewWidth, bitmapWidth)
+                bitmapDrawableRectF.left = 0f
+                bitmapDrawableRectF.top = 0f
+            }
         }
         Log.e("IMAGE-SCALE", "$bitmapScale")
-        Log.e("IMAGE-WIDTH-SCALED", "${getScaledBitmapWidth(bitmapWidth, bitmapScale)}")
-        Log.e("IMAGE-HEIGHT-SCALED", "${getScaledBitmapHeight(bitmapHeight, bitmapScale)}")
+        Log.e("IMAGE-WIDTH-SCALED", "${multiplyOneSideByTheScale(bitmapWidth, bitmapScale)}")
+        Log.e("IMAGE-HEIGHT-SCALED", "${multiplyOneSideByTheScale(bitmapHeight, bitmapScale)}")
+    }
+
+    /**
+     * This method place the drawable image inside the view, in this case the highest side of image
+     * scale to the view
+     */
+    private fun placeDrawableImageInCenter() {
+        when {
+        //width is bigger than height
+            getBitmapDrawableRatio() > 1f -> {
+                bitmapScale = getBitmapScale(viewWidth, bitmapWidth)
+                val scaledBitmapHeight = multiplyOneSideByTheScale(bitmapHeight, bitmapScale)
+                val expansion = (viewHeight - scaledBitmapHeight) / 2
+                bitmapDrawableRectF.left = 0f
+                bitmapDrawableRectF.top = +expansion
+            }
+        //height is bigger than width
+            getBitmapDrawableRatio() < 1f -> {
+                bitmapScale = getBitmapScale(viewHeight, bitmapHeight)
+                val scaledBitmapWidth = multiplyOneSideByTheScale(bitmapWidth, bitmapScale)
+                val expansion = (viewWidth - scaledBitmapWidth) / 2
+                bitmapDrawableRectF.left = +expansion
+                bitmapDrawableRectF.top = 0f
+            }
+        //width and height are equal
+            else -> {
+                bitmapScale = getBitmapScale(viewWidth, bitmapWidth)
+                bitmapDrawableRectF.left = 0f
+                bitmapDrawableRectF.top = 0f
+            }
+        }
+        Log.e("IMAGE-SCALE", "$bitmapScale")
+        Log.e("IMAGE-WIDTH-SCALED", "${multiplyOneSideByTheScale(bitmapWidth, bitmapScale)}")
+        Log.e("IMAGE-HEIGHT-SCALED", "${multiplyOneSideByTheScale(bitmapHeight, bitmapScale)}")
     }
 
     /**
@@ -195,27 +235,14 @@ class ImageCropperView : View {
      */
     private fun getBitmapDrawableRatio() = bitmapWidth / bitmapHeight
 
-    /**
-     * This method place the drawable image inside the view
-     */
-    private fun placeDrawableImageInTheCenter() {
-        //TODO probably, here we can make the opposite functionality
-    }
-
     private fun getBitmapScale(smallestSideOfView: Float, smallestSideOfImage: Float) =
             smallestSideOfView / smallestSideOfImage
 
     /**
      * This method scales the drawable image width
      */
-    private fun getScaledBitmapWidth(bitmapWidth: Float, bitmapScale: Float) =
-            bitmapWidth * bitmapScale
-
-    /**
-     * This method scales the drawable image height
-     */
-    private fun getScaledBitmapHeight(bitmapHeight: Float, bitmapScale: Float) =
-            bitmapHeight * bitmapScale
+    private fun multiplyOneSideByTheScale(bitmapSide: Float, bitmapScale: Float) =
+            bitmapSide * bitmapScale
 
     /**
      * (1)
@@ -235,6 +262,7 @@ class ImageCropperView : View {
         val parentHeightSize = MeasureSpec.getSize(heightMeasureSpec)
 
         //Long number used for the setMeasuredDimension(,) for the ImageCropperView
+
         val widthMode = MeasureSpec.getMode(widthMeasureSpec)
         val heightMode = MeasureSpec.getMode(heightMeasureSpec)
 
@@ -244,68 +272,43 @@ class ImageCropperView : View {
 
         when (widthMode) {
             MeasureSpec.EXACTLY -> {
-                Log.e("x-WIDTH EXACTLY", "WIDTH EXACTLY")
                 targetWidth = parentWidthSize
-
+                gridDrawable.setBounds(0, 0, targetWidth, targetWidth)
                 when (heightMode) {
                     MeasureSpec.EXACTLY -> {
-                        Log.e("x-HEIGHT EXACTLY", "HEIGHT EXACTLY")
-                        targetHeight = parentHeightSize
+                        targetHeight = parentWidthSize
                     }
                     MeasureSpec.AT_MOST -> {
-                        Log.e("x-HEIGHT AT_MOST", "HEIGHT AT_MOST")
-                        targetWidth = parentWidthSize
                         targetHeight = parentWidthSize
                     }
                     MeasureSpec.UNSPECIFIED -> {
-                        Log.e("x-HEIGHT UNSPECIFIED", "HEIGHT UNSPECIFIED")
+                        TODO("UNSPECIFIED VIEW HEIGHT")
                     }
                 }
             }
 
             MeasureSpec.AT_MOST -> {
-                Log.e("x-WIDTH AT_MOST", "WIDTH AT_MOST")
+                targetWidth = parentWidthSize
+                gridDrawable.setBounds(0, 0, targetWidth, targetWidth)
                 when (heightMode) {
                     MeasureSpec.EXACTLY -> {
-                        Log.e("x-HEIGHT EXACTLY", "HEIGHT EXACTLY")
-                        // if we have a vertical line, wrap_content-match_parent
-                        // set the all the height of the parent
-                        // and the minimum between the width of the parent or the height of the parent x ratio
                         targetHeight = parentWidthSize
-                        targetWidth = parentWidthSize
-
                     }
                     MeasureSpec.AT_MOST -> {
-                        Log.e("x-HEIGHT AT_MOST", "HEIGHT AT_MOST")
-
-                        val specRatio = parentWidthSize.toFloat() / parentHeightSize.toFloat()
-                        Log.e("x-DEFAULT_RATIO", "DEFAULT_RATIO $DEFAULT_IMAGE_RATIO")
-                        Log.e("x-DEFAULT_RATIO", "DEFAULT_RATIO $specRatio")
-
-                        if (specRatio == DEFAULT_IMAGE_RATIO) {
-                            targetWidth = parentWidthSize
-                            targetHeight = parentHeightSize
-                        } else if (specRatio > DEFAULT_IMAGE_RATIO) {
-                            targetWidth = (targetHeight * DEFAULT_IMAGE_RATIO).toInt()
-                            targetHeight = parentHeightSize
-                        } else {
-                            targetWidth = parentWidthSize
-                            targetHeight = (targetWidth / DEFAULT_IMAGE_RATIO).toInt()
-                        }
-
+                        targetHeight = parentWidthSize
                     }
                     MeasureSpec.UNSPECIFIED -> {
-                        Log.e("x-HEIGHT UNSPECIFIED", "HEIGHT UNSPECIFIED")
+                        TODO("UNSPECIFIED VIEW HEIGHT")
                     }
                 }
             }
 
             MeasureSpec.UNSPECIFIED -> {
-                Toast.makeText(context, "UNSPECIFIED", Toast.LENGTH_SHORT).show()
+                TODO("UNSPECIFIED VIEW HEIGHT")
             }
         }
 
-        //esto es para los valores en el preview de android studio
+        //We set width and height of the view which are seen in the xml android studio preview view
         setMeasuredDimension(targetWidth, targetHeight)
     }
 
@@ -330,16 +333,14 @@ class ImageCropperView : View {
      */
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        if (bitmapDrawable != null) {
-            updateBitmapDrawable()
-            bitmapDrawable?.draw(canvas)
-            gridDrawable.draw(canvas)
-        }
+        updateBitmapDrawable()
+        bitmapDrawable?.draw(canvas)
+        gridDrawable.draw(canvas)
     }
 
     private fun updateBitmapDrawable() {
-        bitmapDrawableRectF.right = bitmapDrawableRectF.left + getScaledBitmapWidth(bitmapWidth, bitmapScale)
-        bitmapDrawableRectF.bottom = bitmapDrawableRectF.top + getScaledBitmapHeight(bitmapHeight, bitmapScale)
+        bitmapDrawableRectF.right = bitmapDrawableRectF.left + multiplyOneSideByTheScale(bitmapWidth, bitmapScale)
+        bitmapDrawableRectF.bottom = bitmapDrawableRectF.top + multiplyOneSideByTheScale(bitmapHeight, bitmapScale)
         bitmapDrawable?.setBounds(bitmapDrawableRectF.left.toInt(), bitmapDrawableRectF.top.toInt(), bitmapDrawableRectF.right.toInt(), bitmapDrawableRectF.bottom.toInt())
     }
 
@@ -355,19 +356,16 @@ class ImageCropperView : View {
     }
 
     companion object {
-        //TODO PODEMOS REDUCIR A MITAD LA ESCALA O 3 VECES SU MISMO TAMAÑO
-        //TODO POR EJEMPLO SI TENEMOS UNA IAMGEN 200X 200 -> 100X 100 , OR 1080X1080 -> 540X540
         const val MINIMUM_ALLOWED_SCALE = 0.2F
         const val MAXIMUM_ALLOWED_SCALE = 3.0F
-        const val MAXIMUM_OVER_SCALE = 0.7F
-        //RATIO VALUE BY DEFAULT TO SPECIFY A SQUARE(1:1)
-        const val DEFAULT_IMAGE_RATIO = 1f
         const val DEFAULT_IMAGE_SCALE = 1f
+        const val DEFAULT_IMAGE_ADJUST_TYPE = 0
     }
 
     /**
      * We override onTouchEvent for handling movements action on drawable image
      */
+    @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
 
         gestureDetector.onTouchEvent(event)
@@ -375,7 +373,10 @@ class ImageCropperView : View {
 
         when (event.actionMasked) {
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_OUTSIDE -> {
-                mAnimator.start()
+                //After the first time, the grid animation will be executed when bitmapDrawable is not null
+                if (bitmapDrawable != null) {
+                    mAnimator.start()
+                }
             }
         }
         return true
@@ -493,7 +494,6 @@ class ImageCropperView : View {
             //Show grid with animation while you're movement the image
             updateBitmapDrawable()
             updateGridDrawable()
-
             invalidate()
             return true
         }
@@ -579,19 +579,6 @@ class ImageCropperView : View {
 
         updateBitmapDrawable()
         updateGridDrawable()
-
-        val scaledFocusX = bitmapDrawableRectF.left + focusRatioX * bitmapDrawableRectF.width()
-        val scaledFocusY = bitmapDrawableRectF.top + focusRatioY * bitmapDrawableRectF.height()
-
-        //Add the difference between midpoint and scaledMidPoint
-        bitmapDrawableRectF.left += mScaleFocusX - scaledFocusX
-        bitmapDrawableRectF.top += mScaleFocusY - scaledFocusY
-    }
-
-    private fun scaleImageKeepingFocus1(scale: Float) {
-        val focusRatioX = (mScaleFocusX - bitmapDrawableRectF.left) / bitmapDrawableRectF.width()
-        val focusRatioY = (mScaleFocusY - bitmapDrawableRectF.top) / bitmapDrawableRectF.height()
-
 
         val scaledFocusX = bitmapDrawableRectF.left + focusRatioX * bitmapDrawableRectF.width()
         val scaledFocusY = bitmapDrawableRectF.top + focusRatioY * bitmapDrawableRectF.height()
@@ -697,10 +684,10 @@ class ImageCropperView : View {
 
         Log.e("CROP-WIDTH-BITMAP", "ORIGINAL ${bitmapDrawable!!.bitmap.width}")
         Log.e("CROP-HEIGHT-BITMAP", "ORIGINAL ${bitmapDrawable!!.bitmap.height}")
-        Log.e("CROP-BITMAP-WIDTH ", "SCALED ${croppedImageWidth}")
-        Log.e("CROP-BITMAP-HEIGHT ", "SCALED ${croppedImageHeight}")
-        Log.e("CROP-BITMAP-X ", "${croppedBitmapDisplacementInLeft}")
-        Log.e("CROP-BITMAP-Y ", "${croppedBitmapDisplacementInTop}")
+        Log.e("CROP-BITMAP-WIDTH ", "SCALED $croppedImageWidth")
+        Log.e("CROP-BITMAP-HEIGHT ", "SCALED $croppedImageHeight")
+        Log.e("CROP-BITMAP-X ", "$croppedBitmapDisplacementInLeft")
+        Log.e("CROP-BITMAP-Y ", "$croppedBitmapDisplacementInTop")
 
         val croppedBitmap = Bitmap.createBitmap(
                 this.bitmapDrawable!!.bitmap,
